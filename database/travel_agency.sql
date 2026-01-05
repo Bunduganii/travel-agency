@@ -139,7 +139,8 @@ CREATE TABLE IF NOT EXISTS feedback (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- Insert default admin user (password: admin123)
+-- Insert default admin user
+-- Note: Password must be hashed using PHP password_hash() function
 INSERT INTO users (username, email, password, full_name, user_type) VALUES
 ('admin', 'admin@travelagency.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Admin User', 'admin');
 

@@ -296,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                     <div class="space-y-2">
                         <label for="email" class="block text-sm font-semibold text-[#111618] dark:text-white">Email Address</label>
-                        <input type="email" id="email" name="email" required autocomplete="email" placeholder="admin@system.com" class="w-full px-4 py-3 bg-white dark:bg-[#1a2c32] border border-[#e0e6e8] dark:border-[#2a3c42] rounded-lg text-[#111618] dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+                        <input type="email" id="email" name="email" required autocomplete="email" placeholder="Enter your admin email" class="w-full px-4 py-3 bg-white dark:bg-[#1a2c32] border border-[#e0e6e8] dark:border-[#2a3c42] rounded-lg text-[#111618] dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
                     </div>
                     
                     <div class="space-y-2">
