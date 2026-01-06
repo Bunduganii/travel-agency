@@ -1,0 +1,360 @@
+/**
+ * Layout Styles - Exact Match to Design Images
+ * Sidebar-based layout system
+ */
+
+/* Main Layout Structure */
+body.has-sidebar {
+    display: flex;
+    min-height: 100vh;
+    background: #F9FAFB;
+}
+
+.main-sidebar {
+    width: 280px;
+    min-height: 100vh;
+    background: #FFFFFF;
+    border-right: 1px solid #E5E7EB;
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+}
+
+.main-wrapper {
+    flex: 1;
+    margin-left: 280px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #E5E7EB;
+}
+
+.sidebar-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #2563EB;
+}
+
+.sidebar-header .logo i {
+    font-size: 1.75rem;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: 1rem 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.nav-section {
+    margin-bottom: 2rem;
+    flex-shrink: 0;
+}
+
+.nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #9CA3AF;
+    padding: 0 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1.5rem;
+    color: #374151;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+
+.nav-item i {
+    width: 20px;
+    text-align: center;
+    color: #6B7280;
+}
+
+.nav-item:hover {
+    background: #F3F4F6;
+    color: #2563EB;
+}
+
+.nav-item:hover i {
+    color: #2563EB;
+}
+
+.nav-item.active {
+    background: #EFF6FF;
+    color: #2563EB;
+    border-left-color: #2563EB;
+}
+
+.nav-item.active i {
+    color: #2563EB;
+}
+
+/* Sidebar Support Card */
+.sidebar-support {
+    padding: 1.5rem;
+    margin-top: auto;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
+}
+
+.support-card {
+    background: #EFF6FF;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.support-card i {
+    font-size: 2rem;
+    color: #2563EB;
+    margin-bottom: 0.75rem;
+}
+
+.support-card strong {
+    display: block;
+    color: #1F2937;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.support-card p {
+    font-size: 0.85rem;
+    color: #6B7280;
+    margin-bottom: 1rem;
+}
+
+.btn-support {
+    background: #FFFFFF;
+    border: 2px solid #2563EB;
+    color: #2563EB;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-support:hover {
+    background: #2563EB;
+    color: #FFFFFF;
+}
+
+.sidebar-footer {
+    padding: 0;
+    border-top: 1px solid #E5E7EB;
+    margin-top: auto;
+    flex-shrink: 0;
+    background: #FFFFFF;
+    display: block;
+    width: 100%;
+}
+
+.logout-item {
+    color: #EF4444;
+}
+
+.logout-item:hover {
+    background: #FEE2E2;
+    color: #DC2626;
+}
+
+.logout-item i {
+    color: #EF4444;
+}
+
+/* Top Header */
+.top-header {
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E7EB;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.header-search {
+    flex: 1;
+    max-width: 500px;
+    position: relative;
+}
+
+.header-search i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9CA3AF;
+}
+
+.header-search input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #F9FAFB;
+    transition: all 0.2s ease;
+}
+
+.header-search input:focus {
+    outline: none;
+    border-color: #2563EB;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.notification-btn {
+    position: relative;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #6B7280;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.notification-btn:hover {
+    background: #F3F4F6;
+    color: #2563EB;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #EF4444;
+    color: #FFFFFF;
+    font-size: 0.7rem;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #FFFFFF;
+}
+
+.user-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.profile-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-name {
+    font-weight: 600;
+    color: #1F2937;
+    font-size: 0.9rem;
+}
+
+.profile-role {
+    font-size: 0.8rem;
+    color: #6B7280;
+}
+
+.header-logout-btn {
+    background: #FEE2E2;
+    color: #EF4444;
+    border: none;
+    padding: 0.625rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.header-logout-btn:hover {
+    background: #EF4444;
+    color: #FFFFFF;
+    transform: scale(1.05);
+}
+
+/* Main Content Area */
+main {
+    flex: 1;
+    padding: 2rem;
+    background: #F9FAFB;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Ensure customer and admin dashboards work with sidebar */
+.customer-dashboard,
+.admin-dashboard {
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .main-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .main-sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-wrapper {
+        margin-left: 0;
+    }
+}
+

@@ -38,11 +38,19 @@ This system allows travel agencies to manage bookings for flights, hotels, and t
 
 ## 🛠️ Technologies Used
 
+<<<<<<< HEAD
 - **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
 - **Backend:** PHP 7.4+
 - **Database:** MySQL 5.7+
 - **Icons:** Font Awesome 6.4.0
 - **No Frameworks:** Pure PHP, no frameworks used
+=======
+- **Frontend:** HTML5, Tailwind CSS, JavaScript (Vanilla)
+- **Backend:** PHP 7.4+
+- **Database:** MySQL 5.7+
+- **Icons:** Material Symbols
+- **Styling:** Tailwind CSS (CDN)
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 ## 📋 Requirements
 
@@ -112,6 +120,7 @@ chmod 755 -R .
 chmod 644 includes/db.php
 ```
 
+<<<<<<< HEAD
 ### Step 5: Initial Login
 
 **Admin Account:**
@@ -119,6 +128,16 @@ chmod 644 includes/db.php
 - Password: `admin123`
 
 **Note:** Default admin password is hashed. You may need to reset it or use the registration system to create a new admin account.
+=======
+### Step 5: Create Admin Account
+
+After setting up the database, you need to create an admin account. You can do this by:
+
+1. **Using the registration page** - Register a new account and manually update the `user_type` field in the database to `'admin'`
+2. **Direct SQL insertion** - Insert an admin user directly into the `users` table with `user_type = 'admin'`
+
+**Note:** Make sure to hash passwords using PHP's `password_hash()` function before inserting into the database.
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 ## 📁 Project Structure
 
@@ -193,8 +212,13 @@ The system supports the following payment methods:
 ## 🎨 Design Features
 
 - **Responsive Design:** Works on desktop, tablet, and mobile devices
+<<<<<<< HEAD
 - **Animations:** Smooth CSS and JavaScript animations
 - **Modern UI:** Clean, professional interface
+=======
+- **Modern UI:** Clean, professional interface built with Tailwind CSS
+- **Material Symbols:** Modern icon library for consistent UI elements
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 - **User-Friendly:** Intuitive navigation and forms
 - **Accessibility:** Semantic HTML and proper form labels
 
@@ -224,11 +248,19 @@ The system supports the following payment methods:
 
 ## 📝 Code Style
 
+<<<<<<< HEAD
 - Clean, readable code
 - Well-commented functions
 - Consistent naming conventions
 - Modular file structure
 - Separation of concerns
+=======
+- Clean, readable PHP code
+- Consistent naming conventions (camelCase for variables, snake_case for database)
+- Modular file structure with includes
+- Separation of concerns (database, authentication, presentation)
+- Prepared statements for all database queries
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 ## 🐛 Troubleshooting
 
@@ -251,12 +283,22 @@ The system supports the following payment methods:
 
 This project is created for educational purposes as a Final Year Project.
 
+<<<<<<< HEAD
 ## 👨‍💻 Developer Notes
 
 - Code is written for intermediate-level understanding
 - No advanced frameworks or libraries used
 - Suitable for learning and demonstration
 - Easy to modify and extend
+=======
+## 👨‍💻 Project Structure
+
+This project follows a simple MVC-like structure:
+- **Presentation Layer:** PHP files in root, `admin/`, and `customer/` directories
+- **Business Logic:** PHP logic embedded in presentation files
+- **Data Layer:** `includes/db.php` for database connections
+- **Shared Components:** `includes/` folder for headers, footers, and authentication
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 ## 🔄 Future Enhancements
 
@@ -279,7 +321,12 @@ For issues or questions:
 
 ## 🙏 Acknowledgments
 
+<<<<<<< HEAD
 - Font Awesome for icons
+=======
+- Material Symbols for icons
+- Tailwind CSS for styling framework
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 - Unsplash for placeholder images
 - PHP and MySQL communities
 

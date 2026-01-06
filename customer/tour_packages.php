@@ -99,6 +99,7 @@ if (!empty($params)) {
 include '../includes/header.php';
 ?>
 <main class="packages-page">
+<<<<<<< HEAD
     <div class="packages-header">
         <div>
             <h1>Discover Your Next Adventure</h1>
@@ -110,10 +111,30 @@ include '../includes/header.php';
             <option>Price: High to Low</option>
             <option>Rating</option>
         </select>
+=======
+            <div class="packages-header">
+        <div class="breadcrumbs">Home / Tours / All Packages</div>
+        <div class="packages-title-section">
+            <div>
+                <h1>Discover Your Next Adventure</h1>
+                <p>Browse our curated selection of premium holiday packages designed for unforgettable memories.</p>
+            </div>
+            <div class="sort-wrapper">
+                <label>Sort by:</label>
+                <select class="sort-dropdown">
+                    <option>Recommended</option>
+                    <option>Price: Low to High</option>
+                    <option>Price: High to Low</option>
+                    <option>Rating</option>
+                </select>
+            </div>
+        </div>
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     </div>
     
     <div class="packages-content">
         <aside class="filters-sidebar">
+<<<<<<< HEAD
             <h3>Filters</h3>
             <a href="?" class="reset-link">Reset</a>
             
@@ -123,14 +144,49 @@ include '../includes/header.php';
                     <input type="number" name="price_min" placeholder="Min" value="<?php echo htmlspecialchars($price_min); ?>">
                     <span>-</span>
                     <input type="number" name="price_max" placeholder="Max" value="<?php echo htmlspecialchars($price_max); ?>">
+=======
+            <div class="filters-header">
+                <h3>Filters</h3>
+                <a href="?" class="reset-link">Reset</a>
+            </div>
+            
+            <div class="filter-group">
+                <h4>Price Range</h4>
+                <div class="price-range-slider">
+                    <input type="range" min="500" max="2500" value="500" class="slider" id="packagePriceMin">
+                    <input type="range" min="500" max="2500" value="2500" class="slider" id="packagePriceMax">
+                    <div class="price-labels">
+                        <span>$500</span>
+                        <span>$2500</span>
+                    </div>
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                 </div>
             </div>
             
             <div class="filter-group">
                 <h4>Duration</h4>
+<<<<<<< HEAD
                 <label><input type="radio" name="duration" value="short" <?php echo $duration === 'short' ? 'checked' : ''; ?>> Up to 3 days</label>
                 <label><input type="radio" name="duration" value="medium" <?php echo $duration === 'medium' ? 'checked' : ''; ?>> 4-7 days</label>
                 <label><input type="radio" name="duration" value="long" <?php echo $duration === 'long' ? 'checked' : ''; ?>> 8-14 days</label>
+=======
+                <label class="filter-checkbox">
+                    <input type="checkbox">
+                    <span>Up to 3 days</span>
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox" checked>
+                    <span>4-7 days</span>
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox">
+                    <span>8-14 days</span>
+                </label>
+                <label class="filter-checkbox">
+                    <input type="checkbox">
+                    <span>15+ days</span>
+                </label>
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
             </div>
             
             <div class="filter-group">
@@ -143,6 +199,25 @@ include '../includes/header.php';
                     <a href="?type=Luxury" class="type-btn <?php echo $package_type === 'Luxury' ? 'active' : ''; ?>">Luxury</a>
                 </div>
             </div>
+<<<<<<< HEAD
+=======
+            
+            <div class="filter-group">
+                <h4>Rating</h4>
+                <label class="filter-checkbox">
+                    <input type="radio" name="rating" value="5">
+                    <span>★★★★★ 5 Stars</span>
+                </label>
+                <label class="filter-checkbox">
+                    <input type="radio" name="rating" value="4">
+                    <span>★★★★★ 4 Stars & up</span>
+                </label>
+                <label class="filter-checkbox">
+                    <input type="radio" name="rating" value="3">
+                    <span>★★★★★ 3 Stars & up</span>
+                </label>
+            </div>
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
         </aside>
         
         <div class="packages-grid">
@@ -157,27 +232,57 @@ include '../includes/header.php';
             ?>
             <div class="package-card">
                 <div class="package-image">
+<<<<<<< HEAD
+=======
+                    <img src="https://images.unsplash.com/photo-1539650116574-75c0c6d73a6e?w=400" alt="<?php echo htmlspecialchars($package['title']); ?>">
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                     <span class="package-badge"><?php echo htmlspecialchars($package['package_type']); ?></span>
                 </div>
                 
                 <div class="package-info">
+<<<<<<< HEAD
                     <h3><?php echo htmlspecialchars($package['title']); ?></h3>
                     <p class="package-location"><?php echo htmlspecialchars($package['destination']); ?></p>
+=======
+                    <p class="package-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <?php echo htmlspecialchars($package['destination']); ?>
+                    </p>
+                    <h3><?php echo htmlspecialchars($package['title']); ?></h3>
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                     
                     <div class="package-rating">
                         <i class="fas fa-star"></i>
                         <span><?php echo number_format($package['rating'], 1); ?></span>
                     </div>
                     
+<<<<<<< HEAD
                     <p class="package-description"><?php echo htmlspecialchars(substr($package['description'], 0, 100)); ?>...</p>
                     
                     <div class="package-features">
                         <?php foreach (array_slice($inclusions, 0, 4) as $inclusion): ?>
                             <span class="feature-tag"><?php echo htmlspecialchars(trim($inclusion)); ?></span>
+=======
+                    <p class="package-description"><?php echo htmlspecialchars(substr($package['description'], 0, 80)); ?>...</p>
+                    
+                    <div class="package-features">
+                        <?php 
+                        $feature_icons = ['calendar', 'plane', 'hotel', 'utensils'];
+                        $feature_count = 0;
+                        foreach (array_slice($inclusions, 0, 4) as $inclusion): 
+                            $icon = $feature_icons[$feature_count] ?? 'check';
+                            $feature_count++;
+                        ?>
+                            <span class="feature-tag">
+                                <i class="fas fa-<?php echo $icon; ?>"></i>
+                                <?php echo htmlspecialchars(trim($inclusion)); ?>
+                            </span>
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                         <?php endforeach; ?>
                     </div>
                     
                     <div class="package-price">
+<<<<<<< HEAD
                         <?php if ($package['original_price'] > 0): ?>
                             <span class="original-price">$<?php echo number_format($package['original_price'], 2); ?></span>
                         <?php endif; ?>
@@ -189,12 +294,41 @@ include '../includes/header.php';
                         <input type="date" name="travel_date" required min="<?php echo date('Y-m-d'); ?>">
                         <input type="number" name="travelers" min="1" value="1" required>
                         <button type="submit" name="book_tour" class="btn btn-primary">Book Now</button>
+=======
+                        <?php if ($package['original_price'] > 0 && $package['original_price'] > $package['price']): ?>
+                            <span class="original-price">$<?php echo number_format($package['original_price'], 0); ?></span>
+                        <?php endif; ?>
+                        <strong class="current-price">$<?php echo number_format($package['price'], 0); ?> / person</strong>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary btn-book-package" onclick="document.getElementById('bookForm<?php echo $package['id']; ?>').submit();">
+                        Book Now
+                    </button>
+                    <form method="POST" id="bookForm<?php echo $package['id']; ?>" style="display: none;">
+                        <input type="hidden" name="package_id" value="<?php echo $package['id']; ?>">
+                        <input type="date" name="travel_date" value="<?php echo date('Y-m-d', strtotime('+30 days')); ?>" required>
+                        <input type="number" name="travelers" min="1" value="1" required>
+                        <button type="submit" name="book_tour">Submit</button>
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                     </form>
                 </div>
             </div>
             <?php endwhile; ?>
         </div>
     </div>
+<<<<<<< HEAD
+=======
+    
+    <div class="pagination">
+        <button class="page-btn"><i class="fas fa-chevron-left"></i></button>
+        <button class="page-btn active">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <span>...</span>
+        <button class="page-btn">8</button>
+        <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+    </div>
+>>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 </main>
 <?php include '../includes/footer.php'; ?>
 
