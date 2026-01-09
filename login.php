@@ -1,12 +1,7 @@
 <?php
 /**
-<<<<<<< HEAD
- * Login Page
- * Handles user authentication (Admin and Customer)
-=======
  * Customer Login Page
  * Handles customer authentication only
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
  */
 require_once 'includes/db.php';
 require_once 'includes/auth.php';
@@ -26,7 +21,6 @@ if (isLoggedIn()) {
 
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-<<<<<<< HEAD
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     $user_type = $_POST['user_type'] ?? 'customer';
@@ -78,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = 'Invalid email or password. Please check your email and user type selection.';
         }
         $stmt->close();
-=======
     // ========== COMPREHENSIVE PHP DEBUGGING ==========
     error_log("========================================");
     error_log("LOGIN FORM SUBMIT - PHP HANDLER STARTED");
@@ -224,12 +217,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $debug_output .= " | User Type: NOT RECEIVED IN POST";
         }
         error_log($debug_output);
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     }
 }
 ?>
 <!DOCTYPE html>
-<<<<<<< HEAD
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -335,7 +326,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <strong>Sarah Jenkins</strong>
                             <span>SENIOR TRAVEL AGENT</span>
                         </div>
-=======
 <html class="light" lang="en">
 <head>
     <meta charset="UTF-8">
@@ -415,35 +405,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php if ($error): ?>
                         <div class="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
                             <strong>❌ Error:</strong> <?php echo htmlspecialchars($error); ?>
-                            <br><br>
-                            <div style="background: #fee2e2; padding: 12px; border-radius: 6px; margin-top: 10px; font-family: 'Courier New', monospace; font-size: 11px; border: 1px solid #fca5a5;">
-                                <strong style="color: #991b1b;">🔍 PHP Server Debug Info:</strong><br>
-                                <?php if (isset($_POST['email'])): ?>
-                                    ✓ Email received: <strong><?php echo htmlspecialchars($_POST['email']); ?></strong><br>
-                                <?php else: ?>
-                                    ✗ Email: <span style="color: #dc2626; font-weight: bold;">NOT RECEIVED IN POST</span><br>
-                                <?php endif; ?>
-                                <?php if (isset($_POST['password'])): ?>
-                                    ✓ Password: SET (<?php echo strlen($_POST['password']); ?> characters)<br>
-                                <?php else: ?>
-                                    ✗ Password: <span style="color: #dc2626; font-weight: bold;">NOT RECEIVED IN POST</span><br>
-                                <?php endif; ?>
-                                <?php if (isset($_POST['user_type'])): ?>
-                                    ✓ User Type received: <strong style="color: #059669;"><?php echo htmlspecialchars($_POST['user_type']); ?></strong><br>
-                                <?php else: ?>
-                                    ✗ User Type: <span style="color: #dc2626; font-weight: bold;">NOT RECEIVED IN POST DATA</span><br>
-                                <?php endif; ?>
-                                <br>
-                                <strong>All POST keys:</strong> <?php echo !empty($_POST) ? implode(', ', array_keys($_POST)) : 'NO POST DATA'; ?><br>
-                                <strong>Request Method:</strong> <?php echo $_SERVER['REQUEST_METHOD']; ?><br>
-                                <br>
-                                <small style="color: #6b7280;">💡 Check browser console (F12 → Console) for JavaScript debug logs</small>
-                            </div>
                         </div>
                     <?php endif; ?>
-                    
-                    <!-- Debug Info Display -->
-                    <div id="debug-info"></div>
                     
                     <div class="space-y-1">
                         <label class="text-sm font-semibold text-[#111618] dark:text-gray-200" for="email">Email Address</label>
@@ -522,14 +485,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="flex items-center gap-1.5">
                         <span class="material-symbols-outlined text-[16px]">lock</span>
                         <span>Secure SSL Encrypted</span>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-<<<<<<< HEAD
     <script>
         function togglePassword() {
             const passwordInput = document.getElementById('password');
@@ -548,7 +509,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 </html>
 
-=======
     <div class="hidden lg:flex lg:w-1/2 relative bg-background-light dark:bg-background-dark">
         <div class="absolute inset-0 bg-cover bg-center transition-opacity duration-700" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200');"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-background-dark/30 to-transparent"></div>
@@ -686,23 +646,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // 7. SHOW VISUAL DEBUG INFO
-        const debugDiv = document.getElementById('debug-info');
-        if (debugDiv) {
-            debugDiv.innerHTML = `
-                <div style="background: #e0f2fe; border: 2px solid #0db9f2; padding: 15px; margin: 10px 0; border-radius: 8px; font-family: monospace; font-size: 12px;">
-                    <strong style="color: #0c4a6e;">🔍 DEBUG INFO (Form Submit):</strong><br>
-                    <strong>Email:</strong> ${email || 'EMPTY'}<br>
-                    <strong>Password:</strong> ${password ? 'SET (' + password.length + ' chars)' : 'EMPTY'}<br>
-                    <strong>User Type:</strong> customer<br>
-                    <strong>Form Method:</strong> ${this.method}<br>
-                    <strong>Form Action:</strong> ${this.action || 'CURRENT PAGE'}<br>
-                    <strong>Validation:</strong> ${validationErrors.length === 0 ? '✓ PASS' : '✗ FAIL - ' + validationErrors.join(', ')}
-                </div>
-            `;
-        }
-        
-        // 8. LOG REQUEST DETAILS
+        // 7. LOG REQUEST DETAILS
         console.log('\n--- STEP 7: REQUEST DETAILS ---');
         console.log('Request Method:', this.method);
         console.log('Request URL:', window.location.href);
@@ -743,4 +687,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </html>
 
 
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd

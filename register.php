@@ -1,10 +1,7 @@
 <?php
 /**
-<<<<<<< HEAD
  * Registration Page
-=======
  * Registration Page - Matches Login Design
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
  * Allows new customers to create an account
  */
 require_once 'includes/db.php';
@@ -45,21 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($result->num_rows > 0) {
             $error = 'Email or username already exists.';
         } else {
-<<<<<<< HEAD
             // Hash password and insert user
-=======
             // Hash password and insert user as customer
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $conn->prepare("INSERT INTO users (username, email, password, full_name, phone, user_type) VALUES (?, ?, ?, ?, ?, 'customer')");
             $stmt->bind_param("sssss", $username, $email, $hashed_password, $full_name, $phone);
             
             if ($stmt->execute()) {
-<<<<<<< HEAD
-                $success = 'Registration successful! You can now login.';
-=======
                 $success = 'Registration successful! Redirecting to login...';
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                 header('refresh:2;url=login.php');
             } else {
                 $error = 'Registration failed. Please try again.';
@@ -70,16 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<<<<<<< HEAD
 <html lang="en">
-=======
 <html class="light" lang="en">
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Travel Agency</title>
-<<<<<<< HEAD
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -118,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="input-wrapper">
                                 <i class="fas fa-user-circle"></i>
                                 <input type="text" id="username" name="username" placeholder="johndoe" required>
-=======
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -209,12 +194,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <span class="material-symbols-outlined text-[20px]">account_circle</span>
                                 </div>
                                 <input class="w-full h-12 pl-10 pr-4 rounded-lg bg-white dark:bg-[#1a2c32] border border-[#dce0e5] dark:border-[#2a3c42] text-[#111618] dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all" id="username" name="username" placeholder="johndoe" type="text" value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                             </div>
                         </div>
                     </div>
                     
-<<<<<<< HEAD
                     <div class="form-group">
                         <label for="email">Email Address</label>
                         <div class="input-wrapper">
@@ -245,7 +228,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="input-wrapper">
                                 <i class="fas fa-lock"></i>
                                 <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm password" required>
-=======
                     <div class="space-y-1">
                         <label class="text-sm font-semibold text-[#111618] dark:text-gray-200" for="email">Email Address</label>
                         <div class="relative">
@@ -290,12 +272,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <button class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" type="button" onclick="togglePassword('confirm_password')">
                                     <span class="material-symbols-outlined text-[20px]" id="toggleIconConfirm">visibility</span>
                                 </button>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                             </div>
                         </div>
                     </div>
                     
-<<<<<<< HEAD
                     <button type="submit" class="btn btn-primary btn-register">
                         Create Account <i class="fas fa-arrow-right"></i>
                     </button>
@@ -303,7 +283,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p class="login-link">
                         Already have an account? <a href="login.php">Log in here</a>
                     </p>
-=======
                     <button type="submit" class="w-full h-12 bg-primary hover:bg-sky-500 text-white font-bold rounded-lg shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2">
                         <span>Create Account</span>
                         <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
@@ -315,12 +294,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <a class="font-bold text-primary hover:text-sky-600 transition-colors" href="login.php">Log in here</a>
                         </p>
                     </div>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                 </form>
             </div>
         </div>
         
-<<<<<<< HEAD
         <div class="register-right">
             <div class="register-image">
                 <div class="location-tag">
@@ -333,7 +310,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </body>
 </html>
 
-=======
         <div class="px-8 py-6 flex flex-wrap justify-between items-center text-xs text-gray-400 dark:text-gray-500 gap-4">
             <div class="flex gap-4">
                 <a class="hover:text-gray-600 dark:hover:text-gray-300" href="#">Privacy Policy</a>
@@ -394,4 +370,3 @@ function togglePassword(fieldId) {
 </script>
 </body>
 </html>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd

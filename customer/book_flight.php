@@ -1,10 +1,6 @@
 <?php
 /**
-<<<<<<< HEAD
- * Book Flight Page
-=======
  * Book Flight Page - Redesigned with Tailwind CSS
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
  * Customer page to search and book flights
  */
 require_once '../includes/db.php';
@@ -49,22 +45,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_flight'])) {
 }
 
 // Get search parameters
-<<<<<<< HEAD
-$origin = $_GET['origin'] ?? '';
-$destination = $_GET['destination'] ?? '';
-$departure_date = $_GET['departure_date'] ?? '';
-$return_date = $_GET['return_date'] ?? '';
-$trip_type = $_GET['trip_type'] ?? 'round_trip';
-$passengers = $_GET['passengers'] ?? 1;
-=======
 $origin = $_GET['origin'] ?? 'JFK';
 $destination = $_GET['destination'] ?? 'LHR';
 $departure_date = $_GET['departure_date'] ?? '';
 $return_date = $_GET['return_date'] ?? '';
 $trip_type = $_GET['trip_type'] ?? 'round_trip';
 $passengers = $_GET['passengers'] ?? 2;
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 $class_type = $_GET['class'] ?? 'Economy';
+
+// Get filter parameters
+$min_price = isset($_GET['min_price']) ? floatval($_GET['min_price']) : 0;
+$max_price = isset($_GET['max_price']) ? floatval($_GET['max_price']) : 2000;
+$stops_filter = isset($_GET['stops']) ? explode(',', $_GET['stops']) : [];
+$airlines_filter = isset($_GET['airlines']) ? explode(',', $_GET['airlines']) : [];
+$departure_time = $_GET['departure_time'] ?? '';
+$sort_by = $_GET['sort'] ?? 'cheapest';
 
 // Build query
 $where = [];
@@ -87,8 +82,79 @@ if ($departure_date) {
     $types .= 's';
 }
 
+// Price filter
+if ($min_price > 0 || $max_price < 2000) {
+    $where[] = "price >= ? AND price <= ?";
+    $params[] = $min_price;
+    $params[] = $max_price;
+    $types .= 'dd';
+}
+
+// Stops filter
+if (!empty($stops_filter) && !in_array('all', $stops_filter)) {
+    $stops_conditions = [];
+    foreach ($stops_filter as $stop) {
+        if ($stop === 'direct') {
+            $stops_conditions[] = "stops = 0";
+        } elseif ($stop === '1') {
+            $stops_conditions[] = "stops = 1";
+        } elseif ($stop === '2+') {
+            $stops_conditions[] = "stops >= 2";
+        }
+    }
+    if (!empty($stops_conditions)) {
+        $where[] = "(" . implode(" OR ", $stops_conditions) . ")";
+    }
+}
+
+// Airlines filter
+if (!empty($airlines_filter)) {
+    $airline_placeholders = implode(',', array_fill(0, count($airlines_filter), '?'));
+    $where[] = "airline IN ($airline_placeholders)";
+    foreach ($airlines_filter as $airline) {
+        $params[] = trim($airline);
+        $types .= 's';
+    }
+}
+
+// Departure time filter
+if ($departure_time) {
+    if ($departure_time === 'morning') {
+        $where[] = "HOUR(departure_date) BETWEEN 6 AND 11";
+    } elseif ($departure_time === 'afternoon') {
+        $where[] = "HOUR(departure_date) BETWEEN 12 AND 17";
+    } elseif ($departure_time === 'evening') {
+        $where[] = "HOUR(departure_date) >= 18 OR HOUR(departure_date) < 6";
+    }
+}
+
+// Class type filter
+if ($class_type && $class_type !== 'all') {
+    $where[] = "class_type = ?";
+    $params[] = $class_type;
+    $types .= 's';
+}
+
 $where_clause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
-$query = "SELECT * FROM flights $where_clause ORDER BY departure_date ASC LIMIT 50";
+
+// Sort order
+$order_by = "ORDER BY ";
+switch ($sort_by) {
+    case 'fastest':
+        // Try to extract hours from duration string like "6h 55m"
+        $order_by .= "CAST(SUBSTRING_INDEX(REPLACE(duration, 'h', ''), ' ', 1) AS UNSIGNED) ASC, departure_date ASC";
+        break;
+    case 'best_value':
+        // Best value = lowest price with available seats
+        $order_by .= "price ASC, available_seats DESC, departure_date ASC";
+        break;
+    case 'cheapest':
+    default:
+        $order_by .= "price ASC, departure_date ASC";
+        break;
+}
+
+$query = "SELECT * FROM flights $where_clause $order_by LIMIT 100";
 
 $flights = [];
 if (!empty($params)) {
@@ -99,140 +165,9 @@ if (!empty($params)) {
     $stmt->execute();
     $flights = $stmt->get_result();
 } else {
-    $flights = $conn->query("SELECT * FROM flights ORDER BY departure_date ASC LIMIT 50");
+    $flights = $conn->query($query);
 }
 
-<<<<<<< HEAD
-include '../includes/header.php';
-?>
-<main class="flight-search-page">
-    <div class="search-section">
-        <h1>Flight Search</h1>
-        <form method="GET" class="flight-search-form">
-            <div class="trip-type-toggle">
-                <input type="radio" name="trip_type" value="round_trip" id="round_trip" <?php echo $trip_type === 'round_trip' ? 'checked' : ''; ?>>
-                <label for="round_trip">Round Trip</label>
-                
-                <input type="radio" name="trip_type" value="one_way" id="one_way" <?php echo $trip_type === 'one_way' ? 'checked' : ''; ?>>
-                <label for="one_way">One Way</label>
-                
-                <input type="radio" name="trip_type" value="multi_city" id="multi_city" <?php echo $trip_type === 'multi_city' ? 'checked' : ''; ?>>
-                <label for="multi_city">Multi-city</label>
-            </div>
-            
-            <div class="search-fields">
-                <div class="field-group">
-                    <label>FROM</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-plane-departure"></i>
-                        <input type="text" name="origin" placeholder="JFK" value="<?php echo htmlspecialchars($origin); ?>">
-                    </div>
-                </div>
-                
-                <button type="button" class="swap-btn" onclick="swapAirports()">
-                    <i class="fas fa-exchange-alt"></i>
-                </button>
-                
-                <div class="field-group">
-                    <label>TO</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-plane-arrival"></i>
-                        <input type="text" name="destination" placeholder="LHR" value="<?php echo htmlspecialchars($destination); ?>">
-                    </div>
-                </div>
-                
-                <div class="field-group">
-                    <label>DEPART</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-calendar"></i>
-                        <input type="date" name="departure_date" value="<?php echo htmlspecialchars($departure_date); ?>">
-                    </div>
-                </div>
-                
-                <div class="field-group">
-                    <label>RETURN</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-calendar"></i>
-                        <input type="date" name="return_date" value="<?php echo htmlspecialchars($return_date); ?>" <?php echo $trip_type === 'one_way' ? 'disabled' : ''; ?>>
-                    </div>
-                </div>
-                
-                <div class="field-group">
-                    <label>Travelers & Class</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-users"></i>
-                        <input type="number" name="passengers" min="1" value="<?php echo htmlspecialchars($passengers); ?>">
-                        <select name="class">
-                            <option value="Economy" <?php echo $class_type === 'Economy' ? 'selected' : ''; ?>>Economy</option>
-                            <option value="Premium" <?php echo $class_type === 'Premium' ? 'selected' : ''; ?>>Premium</option>
-                            <option value="Business" <?php echo $class_type === 'Business' ? 'selected' : ''; ?>>Business</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            
-            <button type="submit" class="btn btn-primary btn-search">
-                <i class="fas fa-search"></i> Search Flights
-            </button>
-        </form>
-    </div>
-    
-    <?php if ($message): ?>
-        <div class="alert alert-<?php echo $message_type; ?> slide-in">
-            <?php echo htmlspecialchars($message); ?>
-        </div>
-    <?php endif; ?>
-    
-    <div class="results-section">
-        <div class="results-header">
-            <h2><?php echo mysqli_num_rows($flights); ?> Flights Found</h2>
-            <div class="sort-options">
-                <button class="sort-btn active">Cheapest</button>
-                <button class="sort-btn">Fastest</button>
-                <button class="sort-btn">Best Value</button>
-            </div>
-        </div>
-        
-        <div class="flights-list">
-            <?php while ($flight = $flights->fetch_assoc()): ?>
-            <div class="flight-card">
-                <div class="flight-airline">
-                    <strong><?php echo htmlspecialchars($flight['airline']); ?></strong>
-                    <span><?php echo htmlspecialchars($flight['flight_number']); ?></span>
-                    <small><?php echo htmlspecialchars($flight['aircraft']); ?></small>
-                </div>
-                
-                <div class="flight-times">
-                    <div class="time-block">
-                        <strong><?php echo date('H:i', strtotime($flight['departure_date'])); ?></strong>
-                        <span><?php echo htmlspecialchars($flight['origin']); ?></span>
-                    </div>
-                    
-                    <div class="flight-path">
-                        <div class="path-line"></div>
-                        <i class="fas fa-plane"></i>
-                        <span><?php echo htmlspecialchars($flight['duration']); ?></span>
-                        <span class="stops"><?php echo $flight['stops'] == 0 ? 'Direct' : $flight['stops'] . ' Stop'; ?></span>
-                    </div>
-                    
-                    <div class="time-block">
-                        <strong><?php echo date('H:i', strtotime($flight['arrival_date'])); ?></strong>
-                        <span><?php echo htmlspecialchars($flight['destination']); ?></span>
-                    </div>
-                </div>
-                
-                <div class="flight-price">
-                    <strong>$<?php echo number_format($flight['price'], 2); ?></strong>
-                    <span>per person</span>
-                    <form method="POST" style="display: inline;">
-                        <input type="hidden" name="flight_id" value="<?php echo $flight['id']; ?>">
-                        <input type="hidden" name="passengers" value="<?php echo $passengers; ?>">
-                        <button type="submit" name="book_flight" class="btn btn-primary">Book Now →</button>
-                    </form>
-                </div>
-            </div>
-            <?php endwhile; ?>
-=======
 $flight_count = mysqli_num_rows($flights);
 
 include '../includes/header.php';
@@ -265,17 +200,17 @@ include '../includes/header.php';
                     <!-- Location Group -->
                     <div class="md:col-span-4 grid grid-cols-2 gap-2 relative">
                         <div class="relative group">
-                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">From</label>
+                            <label for="origin_input" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">From</label>
                             <div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-background-light dark:bg-background-dark focus-within:ring-2 focus-within:ring-primary/50 transition-all overflow-hidden">
                                 <span class="material-symbols-outlined text-slate-400 pl-3 text-[20px]">flight_takeoff</span>
-                                <input class="w-full bg-transparent border-none text-slate-900 dark:text-white font-bold placeholder-slate-400 focus:ring-0 text-base py-3" placeholder="City or Airport" type="text" name="origin" value="<?php echo htmlspecialchars($origin); ?>"/>
+                                <input id="origin_input" class="w-full bg-transparent border-none text-slate-900 dark:text-white font-bold placeholder-slate-400 focus:ring-0 text-base py-3 pr-3" placeholder="City or Airport" type="text" name="origin" value="<?php echo htmlspecialchars($origin); ?>" required/>
                             </div>
                         </div>
                         <div class="relative">
-                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">To</label>
+                            <label for="destination_input" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">To</label>
                             <div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-background-light dark:bg-background-dark focus-within:ring-2 focus-within:ring-primary/50 transition-all overflow-hidden">
                                 <span class="material-symbols-outlined text-slate-400 pl-3 text-[20px]">flight_land</span>
-                                <input class="w-full bg-transparent border-none text-slate-900 dark:text-white font-bold placeholder-slate-400 focus:ring-0 text-base py-3" placeholder="City or Airport" type="text" name="destination" value="<?php echo htmlspecialchars($destination); ?>"/>
+                                <input id="destination_input" class="w-full bg-transparent border-none text-slate-900 dark:text-white font-bold placeholder-slate-400 focus:ring-0 text-base py-3 pr-3" placeholder="City or Airport" type="text" name="destination" value="<?php echo htmlspecialchars($destination); ?>" required/>
                             </div>
                         </div>
                         <button type="button" onclick="swapAirports()" class="absolute -right-3 top-[34px] z-10 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-600 rounded-full p-1 shadow-sm cursor-pointer hover:scale-110 transition-transform hidden md:block">
@@ -286,17 +221,17 @@ include '../includes/header.php';
                     <!-- Date Group -->
                     <div class="md:col-span-3 grid grid-cols-2 gap-2">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Depart</label>
+                            <label for="departure_date_input" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Depart</label>
                             <div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-background-light dark:bg-background-dark focus-within:ring-2 focus-within:ring-primary/50 transition-all overflow-hidden">
-                                <span class="material-symbols-outlined text-slate-400 pl-3 text-[20px]">calendar_today</span>
-                                <input class="w-full bg-transparent border-none text-slate-900 dark:text-white font-medium focus:ring-0 text-sm py-3.5" type="date" name="departure_date" value="<?php echo htmlspecialchars($departure_date); ?>"/>
+                                <span class="material-symbols-outlined text-slate-400 pl-3 text-[20px] cursor-pointer" onclick="openDatePicker('departure_date_input')">calendar_today</span>
+                                <input id="departure_date_input" class="w-full bg-transparent border-none text-slate-900 dark:text-white font-medium focus:ring-0 text-sm py-3.5 pr-3" type="date" name="departure_date" value="<?php echo htmlspecialchars($departure_date); ?>" min="<?php echo date('Y-m-d'); ?>" required/>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Return</label>
+                            <label for="return_date_input" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Return</label>
                             <div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-background-light dark:bg-background-dark focus-within:ring-2 focus-within:ring-primary/50 transition-all overflow-hidden">
-                                <span class="material-symbols-outlined text-slate-400 pl-3 text-[20px]">calendar_today</span>
-                                <input class="w-full bg-transparent border-none text-slate-900 dark:text-white font-medium focus:ring-0 text-sm py-3.5" type="date" name="return_date" value="<?php echo htmlspecialchars($return_date); ?>" <?php echo $trip_type === 'one_way' ? 'disabled' : ''; ?>/>
+                                <span class="material-symbols-outlined text-slate-400 pl-3 text-[20px] cursor-pointer" onclick="openDatePicker('return_date_input')">calendar_today</span>
+                                <input id="return_date_input" class="w-full bg-transparent border-none text-slate-900 dark:text-white font-medium focus:ring-0 text-sm py-3.5 pr-3" type="date" name="return_date" value="<?php echo htmlspecialchars($return_date); ?>" min="<?php echo $departure_date ? date('Y-m-d', strtotime($departure_date . ' +1 day')) : date('Y-m-d', strtotime('+1 day')); ?>" <?php echo $trip_type === 'one_way' ? 'disabled' : ''; ?>/>
                             </div>
                         </div>
                     </div>
@@ -304,15 +239,15 @@ include '../includes/header.php';
                     <!-- Passengers & Class -->
                     <div class="md:col-span-3">
                         <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wide">Travelers & Class</label>
-                        <div class="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-background-light dark:bg-background-dark focus-within:ring-2 focus-within:ring-primary/50 transition-all overflow-hidden">
+                        <button type="button" onclick="openTravelerModal()" class="w-full flex items-center border border-slate-200 dark:border-slate-700 rounded-lg bg-background-light dark:bg-background-dark focus-within:ring-2 focus-within:ring-primary/50 transition-all overflow-hidden cursor-pointer hover:border-primary/50">
                             <span class="material-symbols-outlined text-slate-400 pl-3 text-[20px]">group</span>
                             <div class="flex-1 px-3 py-3.5 flex items-center justify-between">
-                                <span class="text-sm font-medium text-slate-900 dark:text-white"><?php echo $passengers; ?> Adults, <?php echo $class_type; ?></span>
+                                <span class="text-sm font-medium text-slate-900 dark:text-white" id="travelerDisplay"><?php echo $passengers; ?> Adults, <?php echo $class_type; ?></span>
                                 <span class="material-symbols-outlined text-slate-400 text-[18px]">expand_more</span>
                             </div>
-                            <input type="hidden" name="passengers" value="<?php echo $passengers; ?>">
-                            <input type="hidden" name="class" value="<?php echo $class_type; ?>">
-                        </div>
+                        </button>
+                        <input type="hidden" name="passengers" id="passengersInput" value="<?php echo $passengers; ?>">
+                        <input type="hidden" name="class" id="classInput" value="<?php echo $class_type; ?>">
                     </div>
                     
                     <!-- Search Button -->
@@ -341,15 +276,20 @@ include '../includes/header.php';
                         <h3 class="font-bold text-slate-900 dark:text-white">Price Range</h3>
                     </div>
                     <div class="mb-4 px-1">
-                        <div class="relative h-1 bg-slate-200 dark:bg-slate-700 rounded-full">
-                            <div class="absolute left-[10%] right-[30%] top-0 bottom-0 bg-primary rounded-full"></div>
-                            <div class="absolute left-[10%] top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-primary rounded-full shadow cursor-pointer"></div>
-                            <div class="absolute right-[30%] top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-primary rounded-full shadow cursor-pointer"></div>
+                        <div class="space-y-2 mb-2">
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-slate-500 w-16">Min:</label>
+                                <input type="number" id="flightMinPrice" min="0" max="2000" step="50" value="<?php echo $min_price; ?>" class="flex-1 px-2 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800" onchange="applyFlightFilters()">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-slate-500 w-16">Max:</label>
+                                <input type="number" id="flightMaxPrice" min="0" max="2000" step="50" value="<?php echo $max_price; ?>" class="flex-1 px-2 py-1 text-sm border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-800" onchange="applyFlightFilters()">
+                            </div>
                         </div>
                     </div>
                     <div class="flex justify-between text-sm text-slate-500 dark:text-slate-400 font-medium">
-                        <span>$200</span>
-                        <span>$1,200</span>
+                        <span>$0</span>
+                        <span>$2,000+</span>
                     </div>
                 </div>
                 
@@ -360,19 +300,16 @@ include '../includes/header.php';
                     </div>
                     <div class="space-y-3">
                         <label class="flex items-center gap-3 cursor-pointer group">
-                            <input class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" type="checkbox"/>
+                            <input name="stops_filter" value="direct" type="checkbox" class="stops-filter w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" <?php echo in_array('direct', $stops_filter) || empty($stops_filter) ? 'checked' : ''; ?> onchange="applyFlightFilters()"/>
                             <span class="text-sm text-slate-900 dark:text-slate-300 group-hover:text-primary transition-colors">Direct only</span>
-                            <span class="ml-auto text-xs text-slate-500 dark:text-slate-500">$450</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer group">
-                            <input checked class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" type="checkbox"/>
+                            <input name="stops_filter" value="1" type="checkbox" class="stops-filter w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" <?php echo in_array('1', $stops_filter) || empty($stops_filter) ? 'checked' : ''; ?> onchange="applyFlightFilters()"/>
                             <span class="text-sm text-slate-900 dark:text-slate-300 group-hover:text-primary transition-colors">1 Stop</span>
-                            <span class="ml-auto text-xs text-slate-500 dark:text-slate-500">$320</span>
                         </label>
                         <label class="flex items-center gap-3 cursor-pointer group">
-                            <input class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" type="checkbox"/>
+                            <input name="stops_filter" value="2+" type="checkbox" class="stops-filter w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" <?php echo in_array('2+', $stops_filter) || empty($stops_filter) ? 'checked' : ''; ?> onchange="applyFlightFilters()"/>
                             <span class="text-sm text-slate-900 dark:text-slate-300 group-hover:text-primary transition-colors">2+ Stops</span>
-                            <span class="ml-auto text-xs text-slate-500 dark:text-slate-500">$280</span>
                         </label>
                     </div>
                 </div>
@@ -383,18 +320,20 @@ include '../includes/header.php';
                         <h3 class="font-bold text-slate-900 dark:text-white">Airlines</h3>
                     </div>
                     <div class="space-y-3">
+                        <?php
+                        // Get unique airlines from database
+                        $airlines_result = $conn->query("SELECT DISTINCT airline FROM flights WHERE airline IS NOT NULL AND airline != '' ORDER BY airline");
+                        $db_airlines = [];
+                        while ($row = $airlines_result->fetch_assoc()) {
+                            $db_airlines[] = $row['airline'];
+                        }
+                        ?>
+                        <?php foreach ($db_airlines as $airline): ?>
                         <label class="flex items-center gap-3 cursor-pointer group">
-                            <input checked class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" type="checkbox"/>
-                            <span class="text-sm text-slate-900 dark:text-slate-300 group-hover:text-primary transition-colors">Delta</span>
+                            <input name="airlines_filter" value="<?php echo htmlspecialchars($airline); ?>" type="checkbox" class="airlines-filter w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" <?php echo in_array($airline, $airlines_filter) || empty($airlines_filter) ? 'checked' : ''; ?> onchange="applyFlightFilters()"/>
+                            <span class="text-sm text-slate-900 dark:text-slate-300 group-hover:text-primary transition-colors"><?php echo htmlspecialchars($airline); ?></span>
                         </label>
-                        <label class="flex items-center gap-3 cursor-pointer group">
-                            <input checked class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" type="checkbox"/>
-                            <span class="text-sm text-slate-900 dark:text-slate-300 group-hover:text-primary transition-colors">British Airways</span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer group">
-                            <input class="w-4 h-4 text-primary border-slate-300 rounded focus:ring-primary/50" type="checkbox"/>
-                            <span class="text-sm text-slate-900 dark:text-slate-300 group-hover:text-primary transition-colors">Emirates</span>
-                        </label>
+                        <?php endforeach; ?>
                     </div>
                 </div>
                 
@@ -404,15 +343,19 @@ include '../includes/header.php';
                         <h3 class="font-bold text-slate-900 dark:text-white">Departure Time</h3>
                     </div>
                     <div class="flex gap-2">
-                        <button type="button" class="flex-1 py-2 rounded border border-slate-200 dark:border-slate-700 bg-background-light dark:bg-background-dark text-xs font-medium hover:border-primary hover:text-primary transition-all flex flex-col items-center gap-1">
+                        <button type="button" onclick="setDepartureTime('')" class="flex-1 py-2 rounded border <?php echo $departure_time === '' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 dark:border-slate-700 bg-background-light dark:bg-background-dark'; ?> text-xs font-medium hover:border-primary hover:text-primary transition-all flex flex-col items-center gap-1">
+                            <span class="material-symbols-outlined text-base">schedule</span>
+                            All
+                        </button>
+                        <button type="button" onclick="setDepartureTime('morning')" class="flex-1 py-2 rounded border <?php echo $departure_time === 'morning' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 dark:border-slate-700 bg-background-light dark:bg-background-dark'; ?> text-xs font-medium hover:border-primary hover:text-primary transition-all flex flex-col items-center gap-1">
                             <span class="material-symbols-outlined text-base">wb_twilight</span>
                             Morning
                         </button>
-                        <button type="button" class="flex-1 py-2 rounded border border-primary bg-primary/10 text-primary text-xs font-bold transition-all flex flex-col items-center gap-1">
+                        <button type="button" onclick="setDepartureTime('afternoon')" class="flex-1 py-2 rounded border <?php echo $departure_time === 'afternoon' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 dark:border-slate-700 bg-background-light dark:bg-background-dark'; ?> text-xs font-medium hover:border-primary hover:text-primary transition-all flex flex-col items-center gap-1">
                             <span class="material-symbols-outlined text-base">wb_sunny</span>
                             Afternoon
                         </button>
-                        <button type="button" class="flex-1 py-2 rounded border border-slate-200 dark:border-slate-700 bg-background-light dark:bg-background-dark text-xs font-medium hover:border-primary hover:text-primary transition-all flex flex-col items-center gap-1">
+                        <button type="button" onclick="setDepartureTime('evening')" class="flex-1 py-2 rounded border <?php echo $departure_time === 'evening' ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 dark:border-slate-700 bg-background-light dark:bg-background-dark'; ?> text-xs font-medium hover:border-primary hover:text-primary transition-all flex flex-col items-center gap-1">
                             <span class="material-symbols-outlined text-base">dark_mode</span>
                             Evening
                         </button>
@@ -426,9 +369,9 @@ include '../includes/header.php';
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <h2 class="text-xl font-bold text-slate-900 dark:text-white"><span class="text-primary"><?php echo $flight_count; ?></span> Flights Found</h2>
                     <div class="flex bg-surface-light dark:bg-surface-dark rounded-lg p-1 shadow-sm border border-slate-100 dark:border-slate-800">
-                        <button class="px-4 py-1.5 rounded-md text-sm font-bold bg-primary text-white shadow-sm">Cheapest</button>
-                        <button class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Fastest</button>
-                        <button class="px-4 py-1.5 rounded-md text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">Best Value</button>
+                        <button type="button" onclick="setSort('cheapest')" class="px-4 py-1.5 rounded-md text-sm <?php echo $sort_by === 'cheapest' ? 'font-bold bg-primary text-white shadow-sm' : 'font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'; ?> transition-colors">Cheapest</button>
+                        <button type="button" onclick="setSort('fastest')" class="px-4 py-1.5 rounded-md text-sm <?php echo $sort_by === 'fastest' ? 'font-bold bg-primary text-white shadow-sm' : 'font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'; ?> transition-colors">Fastest</button>
+                        <button type="button" onclick="setSort('best_value')" class="px-4 py-1.5 rounded-md text-sm <?php echo $sort_by === 'best_value' ? 'font-bold bg-primary text-white shadow-sm' : 'font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'; ?> transition-colors">Best Value</button>
                     </div>
                 </div>
                 
@@ -518,38 +461,171 @@ include '../includes/header.php';
                 <!-- Pagination -->
                 <div class="mt-8 flex justify-center">
                     <nav class="flex items-center gap-2">
-                        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark text-slate-500 hover:border-primary hover:text-primary transition-colors">
-                            <span class="material-symbols-outlined">chevron_left</span>
+                        <button onclick="navigatePage(-1)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-white text-slate-600 dark:text-slate-600 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span>
                         </button>
-                        <button class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold shadow-sm shadow-primary/30">1</button>
-                        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark text-slate-500 hover:border-primary hover:text-primary transition-colors font-medium">2</button>
-                        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark text-slate-500 hover:border-primary hover:text-primary transition-colors font-medium">3</button>
-                        <span class="px-2 text-slate-500">...</span>
-                        <button class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-surface-dark text-slate-500 hover:border-primary hover:text-primary transition-colors">
-                            <span class="material-symbols-outlined">chevron_right</span>
+                        <button onclick="goToPage(1)" class="w-10 h-10 flex items-center justify-center rounded-lg bg-primary hover:bg-primary text-white font-bold text-sm shadow-sm">1</button>
+                        <button onclick="goToPage(2)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-200 bg-white dark:bg-white text-slate-700 dark:text-slate-700 hover:border-primary hover:text-primary transition-colors font-medium text-sm shadow-sm">2</button>
+                        <button onclick="goToPage(3)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-200 bg-white dark:bg-white text-slate-700 dark:text-slate-700 hover:border-primary hover:text-primary transition-colors font-medium text-sm shadow-sm">3</button>
+                        <span class="px-2 text-slate-600 dark:text-slate-600 font-medium text-sm">...</span>
+                        <button onclick="navigatePage(1)" class="w-10 h-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-white text-slate-600 dark:text-slate-600 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                            <span class="material-symbols-outlined text-sm">chevron_right</span>
                         </button>
                     </nav>
                 </div>
             </section>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
         </div>
     </div>
 </main>
 
 <script>
-<<<<<<< HEAD
-=======
 function setTripType(type) {
     document.getElementById('trip_type_input').value = type;
-    const returnInput = document.querySelector('input[name="return_date"]');
+    const returnInput = document.getElementById('return_date_input');
     if (type === 'one_way' && returnInput) {
         returnInput.disabled = true;
+        returnInput.removeAttribute('required');
     } else if (returnInput) {
         returnInput.disabled = false;
+        returnInput.setAttribute('required', 'required');
+        // Update min date based on departure date
+        const departureInput = document.getElementById('departure_date_input');
+        if (departureInput && departureInput.value) {
+            const departureDate = new Date(departureInput.value);
+            departureDate.setDate(departureDate.getDate() + 1);
+            returnInput.min = departureDate.toISOString().split('T')[0];
+        }
     }
 }
 
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
+// Update return date min when departure date changes
+document.addEventListener('DOMContentLoaded', function() {
+    const departureInput = document.getElementById('departure_date_input');
+    const returnInput = document.getElementById('return_date_input');
+    
+    if (departureInput && returnInput) {
+        departureInput.addEventListener('change', function() {
+            if (this.value) {
+                const departureDate = new Date(this.value);
+                departureDate.setDate(departureDate.getDate() + 1);
+                returnInput.min = departureDate.toISOString().split('T')[0];
+                if (returnInput.value && new Date(returnInput.value) <= new Date(this.value)) {
+                    returnInput.value = departureDate.toISOString().split('T')[0];
+                }
+            }
+        });
+    }
+});
+
+// Date picker function with fallback
+function openDatePicker(inputId) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        // Try modern showPicker() API first
+        if (input.showPicker && typeof input.showPicker === 'function') {
+            input.showPicker().catch(() => {
+                // Fallback: focus and click the input
+                input.focus();
+                input.click();
+            });
+        } else {
+            // Fallback for browsers that don't support showPicker()
+            input.focus();
+            input.click();
+        }
+    }
+}
+
+// Pagination functions
+function getCurrentPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return parseInt(urlParams.get('page')) || 1;
+}
+
+function navigatePage(direction) {
+    const currentPage = getCurrentPage();
+    const newPage = Math.max(1, currentPage + direction);
+    goToPage(newPage);
+}
+
+function goToPage(page) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    window.location.href = url.toString();
+}
+
+let currentPassengers = <?php echo $passengers; ?>;
+
+function openTravelerModal() {
+    // Create or show modal
+    let modal = document.getElementById('travelerModal');
+    if (!modal) {
+        // Create modal HTML
+        modal = document.createElement('div');
+        modal.id = 'travelerModal';
+        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden';
+        modal.innerHTML = `
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full p-6" onclick="event.stopPropagation()">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Travelers & Class</h3>
+                    <button onclick="closeTravelerModal()" class="text-slate-400 hover:text-slate-600">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Adults</label>
+                        <div class="flex items-center gap-3">
+                            <button type="button" onclick="changePassengers(-1)" class="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">remove</span>
+                            </button>
+                            <span id="passengerCount" class="text-lg font-bold text-slate-900 dark:text-white w-12 text-center"><?php echo $passengers; ?></span>
+                            <button type="button" onclick="changePassengers(1)" class="w-10 h-10 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+                                <span class="material-symbols-outlined text-[18px]">add</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Class</label>
+                        <select id="classSelect" class="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary">
+                            <option value="Economy" <?php echo $class_type === 'Economy' ? 'selected' : ''; ?>>Economy</option>
+                            <option value="Premium" <?php echo $class_type === 'Premium' ? 'selected' : ''; ?>>Premium</option>
+                            <option value="Business" <?php echo $class_type === 'Business' ? 'selected' : ''; ?>>Business</option>
+                            <option value="First" <?php echo $class_type === 'First' ? 'selected' : ''; ?>>First</option>
+                        </select>
+                    </div>
+                    <button onclick="applyTravelerSelection()" class="w-full px-4 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors">
+                        Apply
+                    </button>
+                </div>
+            </div>
+        `;
+        modal.onclick = closeTravelerModal;
+        document.body.appendChild(modal);
+    }
+    modal.classList.remove('hidden');
+}
+
+function closeTravelerModal() {
+    const modal = document.getElementById('travelerModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function changePassengers(delta) {
+    currentPassengers = Math.max(1, Math.min(9, currentPassengers + delta));
+    document.getElementById('passengerCount').textContent = currentPassengers;
+}
+
+function applyTravelerSelection() {
+    const classValue = document.getElementById('classSelect').value;
+    document.getElementById('passengersInput').value = currentPassengers;
+    document.getElementById('classInput').value = classValue;
+    document.getElementById('travelerDisplay').textContent = currentPassengers + ' Adults, ' + classValue;
+    closeTravelerModal();
+}
+
 function swapAirports() {
     const origin = document.querySelector('input[name="origin"]');
     const destination = document.querySelector('input[name="destination"]');
@@ -557,9 +633,49 @@ function swapAirports() {
     origin.value = destination.value;
     destination.value = temp;
 }
+
+function applyFlightFilters() {
+    const url = new URL(window.location.href);
+    
+    // Price filter
+    const minPrice = document.getElementById('flightMinPrice').value || 0;
+    const maxPrice = document.getElementById('flightMaxPrice').value || 2000;
+    url.searchParams.set('min_price', minPrice);
+    url.searchParams.set('max_price', maxPrice);
+    
+    // Stops filter
+    const stops = Array.from(document.querySelectorAll('.stops-filter:checked')).map(cb => cb.value);
+    if (stops.length > 0) {
+        url.searchParams.set('stops', stops.join(','));
+    } else {
+        url.searchParams.delete('stops');
+    }
+    
+    // Airlines filter
+    const airlines = Array.from(document.querySelectorAll('.airlines-filter:checked')).map(cb => cb.value);
+    if (airlines.length > 0) {
+        url.searchParams.set('airlines', airlines.join(','));
+    } else {
+        url.searchParams.delete('airlines');
+    }
+    
+    window.location.href = url.toString();
+}
+
+function setDepartureTime(time) {
+    const url = new URL(window.location.href);
+    if (time) {
+        url.searchParams.set('departure_time', time);
+    } else {
+        url.searchParams.delete('departure_time');
+    }
+    window.location.href = url.toString();
+}
+
+function setSort(sortType) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', sortType);
+    window.location.href = url.toString();
+}
 </script>
 <?php include '../includes/footer.php'; ?>
-<<<<<<< HEAD
-
-=======
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd

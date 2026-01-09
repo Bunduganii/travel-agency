@@ -9,10 +9,50 @@ require_once '../includes/auth.php';
 requireAdmin();
 
 $page_title = 'Manage Bookings';
+$message = '';
+$message_type = '';
+
+// Handle booking actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $booking_id = intval($_POST['booking_id']);
+    $booking_type = $_POST['booking_type'];
+    $action = $_POST['action'];
+    
+    if ($action === 'confirm') {
+        if ($booking_type === 'flight') {
+            $stmt = $conn->prepare("UPDATE flight_bookings SET status = 'confirmed' WHERE id = ?");
+        } elseif ($booking_type === 'hotel') {
+            $stmt = $conn->prepare("UPDATE hotel_reservations SET status = 'confirmed' WHERE id = ?");
+        } else {
+            $stmt = $conn->prepare("UPDATE tour_bookings SET status = 'confirmed' WHERE id = ?");
+        }
+        $stmt->bind_param("i", $booking_id);
+        if ($stmt->execute()) {
+            $message = 'Booking confirmed successfully!';
+            $message_type = 'success';
+        }
+        $stmt->close();
+    } elseif ($action === 'cancel') {
+        if ($booking_type === 'flight') {
+            $stmt = $conn->prepare("UPDATE flight_bookings SET status = 'cancelled' WHERE id = ?");
+        } elseif ($booking_type === 'hotel') {
+            $stmt = $conn->prepare("UPDATE hotel_reservations SET status = 'cancelled' WHERE id = ?");
+        } else {
+            $stmt = $conn->prepare("UPDATE tour_bookings SET status = 'cancelled' WHERE id = ?");
+        }
+        $stmt->bind_param("i", $booking_id);
+        if ($stmt->execute()) {
+            $message = 'Booking cancelled successfully!';
+            $message_type = 'success';
+        }
+        $stmt->close();
+    }
+}
 
 // Get filter parameters
 $filter_type = $_GET['type'] ?? 'all';
 $filter_status = $_GET['status'] ?? 'all';
+$search = $_GET['search'] ?? '';
 
 // Build query for all bookings
 $bookings = [];
@@ -38,10 +78,30 @@ FROM flight_bookings fb
 JOIN users u ON fb.user_id = u.id
 JOIN flights f ON fb.flight_id = f.id";
 
+$flight_where = [];
+$flight_params = [];
+$flight_types = '';
+
 if ($filter_status !== 'all') {
-    $flight_query .= " WHERE fb.status = ?";
+    $flight_where[] = "fb.status = ?";
+    $flight_params[] = $filter_status;
+    $flight_types .= 's';
+}
+
+if ($search) {
+    $search_param = "%$search%";
+    $flight_where[] = "(u.full_name LIKE ? OR u.email LIKE ?)";
+    $flight_params[] = $search_param;
+    $flight_params[] = $search_param;
+    $flight_types .= 'ss';
+}
+
+if (!empty($flight_where)) {
+    $flight_query .= " WHERE " . implode(" AND ", $flight_where);
     $stmt = $conn->prepare($flight_query);
-    $stmt->bind_param("s", $filter_status);
+    if ($flight_types) {
+        $stmt->bind_param($flight_types, ...$flight_params);
+    }
 } else {
     $stmt = $conn->prepare($flight_query);
 }
@@ -71,10 +131,30 @@ FROM hotel_reservations hr
 JOIN users u ON hr.user_id = u.id
 JOIN hotels h ON hr.hotel_id = h.id";
 
+$hotel_where = [];
+$hotel_params = [];
+$hotel_types = '';
+
 if ($filter_status !== 'all') {
-    $hotel_query .= " WHERE hr.status = ?";
+    $hotel_where[] = "hr.status = ?";
+    $hotel_params[] = $filter_status;
+    $hotel_types .= 's';
+}
+
+if ($search) {
+    $search_param = "%$search%";
+    $hotel_where[] = "(u.full_name LIKE ? OR u.email LIKE ?)";
+    $hotel_params[] = $search_param;
+    $hotel_params[] = $search_param;
+    $hotel_types .= 'ss';
+}
+
+if (!empty($hotel_where)) {
+    $hotel_query .= " WHERE " . implode(" AND ", $hotel_where);
     $stmt = $conn->prepare($hotel_query);
-    $stmt->bind_param("s", $filter_status);
+    if ($hotel_types) {
+        $stmt->bind_param($hotel_types, ...$hotel_params);
+    }
 } else {
     $stmt = $conn->prepare($hotel_query);
 }
@@ -103,10 +183,30 @@ FROM tour_bookings tb
 JOIN users u ON tb.user_id = u.id
 JOIN tour_packages tp ON tb.package_id = tp.id";
 
+$tour_where = [];
+$tour_params = [];
+$tour_types = '';
+
 if ($filter_status !== 'all') {
-    $tour_query .= " WHERE tb.status = ?";
+    $tour_where[] = "tb.status = ?";
+    $tour_params[] = $filter_status;
+    $tour_types .= 's';
+}
+
+if ($search) {
+    $search_param = "%$search%";
+    $tour_where[] = "(u.full_name LIKE ? OR u.email LIKE ?)";
+    $tour_params[] = $search_param;
+    $tour_params[] = $search_param;
+    $tour_types .= 'ss';
+}
+
+if (!empty($tour_where)) {
+    $tour_query .= " WHERE " . implode(" AND ", $tour_where);
     $stmt = $conn->prepare($tour_query);
-    $stmt->bind_param("s", $filter_status);
+    if ($tour_types) {
+        $stmt->bind_param($tour_types, ...$tour_params);
+    }
 } else {
     $stmt = $conn->prepare($tour_query);
 }
@@ -141,30 +241,57 @@ include '../includes/header.php';
             </div>
         </div>
 
-        <!-- Filters -->
+        <!-- Search and Filters -->
         <div class="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
-            <div class="flex flex-wrap gap-4">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Booking Type</label>
-                    <select id="filterType" class="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
-                        <option value="all" <?php echo $filter_type === 'all' ? 'selected' : ''; ?>>All Types</option>
-                        <option value="flight" <?php echo $filter_type === 'flight' ? 'selected' : ''; ?>>Flights</option>
-                        <option value="hotel" <?php echo $filter_type === 'hotel' ? 'selected' : ''; ?>>Hotels</option>
-                        <option value="tour" <?php echo $filter_type === 'tour' ? 'selected' : ''; ?>>Tours</option>
-                    </select>
+            <form method="GET" class="flex flex-col gap-4">
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex-1 min-w-[250px]">
+                        <label for="booking_search_input" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Search Bookings</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">search</span>
+                            <input id="booking_search_input" type="text" name="search" value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>" placeholder="Search by customer name or email" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" aria-label="Search bookings">
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Booking Type</label>
+                        <select name="type" id="filterType" class="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="all" <?php echo $filter_type === 'all' ? 'selected' : ''; ?>>All Types</option>
+                            <option value="flight" <?php echo $filter_type === 'flight' ? 'selected' : ''; ?>>Flights</option>
+                            <option value="hotel" <?php echo $filter_type === 'hotel' ? 'selected' : ''; ?>>Hotels</option>
+                            <option value="tour" <?php echo $filter_type === 'tour' ? 'selected' : ''; ?>>Tours</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Status</label>
+                        <select name="status" id="filterStatus" class="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="all" <?php echo $filter_status === 'all' ? 'selected' : ''; ?>>All Statuses</option>
+                            <option value="pending" <?php echo $filter_status === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                            <option value="confirmed" <?php echo $filter_status === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+                            <option value="cancelled" <?php echo $filter_status === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                            <option value="completed" <?php echo $filter_status === 'completed' ? 'selected' : ''; ?>>Completed</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Status</label>
-                    <select id="filterStatus" class="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
-                        <option value="all" <?php echo $filter_status === 'all' ? 'selected' : ''; ?>>All Statuses</option>
-                        <option value="pending" <?php echo $filter_status === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                        <option value="confirmed" <?php echo $filter_status === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-                        <option value="cancelled" <?php echo $filter_status === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                        <option value="completed" <?php echo $filter_status === 'completed' ? 'selected' : ''; ?>>Completed</option>
-                    </select>
+                <div class="flex gap-2">
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+                        <span class="material-symbols-outlined text-[18px] align-middle">search</span>
+                        Search
+                    </button>
+                    <?php if (isset($_GET['search']) || $filter_type !== 'all' || $filter_status !== 'all'): ?>
+                        <a href="manage_bookings.php" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                            Clear
+                        </a>
+                    <?php endif; ?>
                 </div>
-            </div>
+            </form>
         </div>
+
+        <!-- Success/Error Message -->
+        <?php if ($message): ?>
+            <div class="bg-<?php echo $message_type === 'success' ? 'green' : 'red'; ?>-50 dark:bg-<?php echo $message_type === 'success' ? 'green' : 'red'; ?>-900/10 border border-<?php echo $message_type === 'success' ? 'green' : 'red'; ?>-200 dark:border-<?php echo $message_type === 'success' ? 'green' : 'red'; ?>-900/20 text-<?php echo $message_type === 'success' ? 'green' : 'red'; ?>-700 dark:text-<?php echo $message_type === 'success' ? 'green' : 'red'; ?>-400 px-4 py-3 rounded-lg text-sm">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+        <?php endif; ?>
 
         <!-- Bookings Table -->
         <div class="bg-surface-light dark:bg-surface-dark rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
@@ -245,18 +372,28 @@ include '../includes/header.php';
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                                         <div class="flex items-center gap-2">
-                                            <button class="text-primary hover:text-primary-dark transition-colors" title="View Details">
+                                            <button onclick="viewBookingDetails('<?php echo $booking['booking_type']; ?>', <?php echo $booking['id']; ?>)" class="text-primary hover:text-primary-dark transition-colors" title="View Details">
                                                 <span class="material-symbols-outlined text-[20px]">visibility</span>
                                             </button>
                                             <?php if ($booking['status'] === 'pending'): ?>
-                                                <button class="text-green-600 hover:text-green-700 transition-colors" title="Confirm">
-                                                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
-                                                </button>
+                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to confirm this booking?');">
+                                                    <input type="hidden" name="action" value="confirm">
+                                                    <input type="hidden" name="booking_id" value="<?php echo $booking['id']; ?>">
+                                                    <input type="hidden" name="booking_type" value="<?php echo $booking['booking_type']; ?>">
+                                                    <button type="submit" class="text-green-600 hover:text-green-700 transition-colors" title="Confirm">
+                                                        <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                                                    </button>
+                                                </form>
                                             <?php endif; ?>
                                             <?php if ($booking['status'] !== 'cancelled'): ?>
-                                                <button class="text-red-600 hover:text-red-700 transition-colors" title="Cancel">
-                                                    <span class="material-symbols-outlined text-[20px]">cancel</span>
-                                                </button>
+                                                <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                                    <input type="hidden" name="action" value="cancel">
+                                                    <input type="hidden" name="booking_id" value="<?php echo $booking['id']; ?>">
+                                                    <input type="hidden" name="booking_type" value="<?php echo $booking['booking_type']; ?>">
+                                                    <button type="submit" class="text-red-600 hover:text-red-700 transition-colors" title="Cancel">
+                                                        <span class="material-symbols-outlined text-[20px]">cancel</span>
+                                                    </button>
+                                                </form>
                                             <?php endif; ?>
                                         </div>
                                     </td>
@@ -271,17 +408,9 @@ include '../includes/header.php';
 </main>
 
 <script>
-document.getElementById('filterType').addEventListener('change', function() {
-    const type = this.value;
-    const status = document.getElementById('filterStatus').value;
-    window.location.href = `?type=${type}&status=${status}`;
-});
-
-document.getElementById('filterStatus').addEventListener('change', function() {
-    const type = document.getElementById('filterType').value;
-    const status = this.value;
-    window.location.href = `?type=${type}&status=${status}`;
-});
+function viewBookingDetails(type, id) {
+    alert('Booking Details:\nType: ' + type + '\nID: ' + id + '\n\nThis would show detailed booking information in a modal.');
+}
 </script>
 
 <?php include '../includes/footer.php'; ?>

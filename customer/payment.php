@@ -1,12 +1,7 @@
 <?php
 /**
-<<<<<<< HEAD
- * Payment Page
- * Handles payment processing for bookings
-=======
  * Payment Page - Redesigned with Tailwind CSS
  * Customer page for payment processing
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
  */
 require_once '../includes/db.php';
 require_once '../includes/auth.php';
@@ -14,12 +9,9 @@ require_once '../includes/auth.php';
 requireCustomer();
 
 $page_title = 'Payment';
-<<<<<<< HEAD
+$payment_success = false;
 $error = '';
 $success = '';
-=======
-$payment_success = false;
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 // Get booking type and ID
 $booking_type = $_GET['type'] ?? '';
@@ -34,32 +26,20 @@ $user_id = getUserId();
 $booking = null;
 $total_amount = 0;
 $booking_details = '';
-<<<<<<< HEAD
-
-// Get booking details based on type
-if ($booking_type === 'flight') {
-    $stmt = $conn->prepare("SELECT fb.*, f.origin, f.destination, f.departure_date FROM flight_bookings fb JOIN flights f ON fb.flight_id = f.id WHERE fb.id = ? AND fb.user_id = ?");
-=======
 $booking_date_info = '';
 $booking_people_info = '';
 
 // Get booking details based on type
 if ($booking_type === 'flight') {
     $stmt = $conn->prepare("SELECT fb.*, f.origin, f.destination, f.departure_date, f.arrival_date FROM flight_bookings fb JOIN flights f ON fb.flight_id = f.id WHERE fb.id = ? AND fb.user_id = ?");
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     $stmt->bind_param("ii", $booking_id, $user_id);
     $stmt->execute();
     $booking = $stmt->get_result()->fetch_assoc();
     if ($booking) {
-<<<<<<< HEAD
-        $total_amount = $booking['total_price'];
-        $booking_details = $booking['origin'] . ' → ' . $booking['destination'];
-=======
         $total_amount = $booking['total_price'] ?? 2625.00;
         $booking_details = ($booking['origin'] ?? 'JFK') . ' → ' . ($booking['destination'] ?? 'LHR');
         $booking_date_info = date('M d', strtotime($booking['departure_date'])) . ' - ' . date('M d', strtotime($booking['arrival_date'] ?? $booking['departure_date']));
         $booking_people_info = ($booking['passengers'] ?? 2) . ' Passengers';
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     }
     $stmt->close();
 } elseif ($booking_type === 'hotel') {
@@ -68,16 +48,11 @@ if ($booking_type === 'flight') {
     $stmt->execute();
     $booking = $stmt->get_result()->fetch_assoc();
     if ($booking) {
-<<<<<<< HEAD
-        $total_amount = $booking['total_price'];
-        $booking_details = $booking['name'] . ', ' . $booking['city'];
-=======
         $total_amount = $booking['total_price'] ?? 2625.00;
         $booking_details = ($booking['name'] ?? 'Hotel') . ', ' . ($booking['city'] ?? 'Tokyo');
         $nights = (strtotime($booking['check_out']) - strtotime($booking['check_in'])) / 86400;
         $booking_date_info = date('M d', strtotime($booking['check_in'])) . ' - ' . date('M d', strtotime($booking['check_out'])) . ' ' . $nights . ' Days, ' . ($nights - 1) . ' Nights';
         $booking_people_info = ($booking['guests'] ?? 2) . ' Adults';
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     }
     $stmt->close();
 } elseif ($booking_type === 'tour') {
@@ -86,68 +61,17 @@ if ($booking_type === 'flight') {
     $stmt->execute();
     $booking = $stmt->get_result()->fetch_assoc();
     if ($booking) {
-<<<<<<< HEAD
-        $total_amount = $booking['total_price'];
-        $booking_details = $booking['title'];
-=======
         $total_amount = $booking['total_price'] ?? 2625.00;
         $booking_details = $booking['title'] ?? 'Tour Package';
         $booking_date_info = date('M d', strtotime($booking['travel_date']));
         $booking_people_info = ($booking['travelers'] ?? 2) . ' Travelers';
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     }
     $stmt->close();
 }
 
 if (!$booking) {
-<<<<<<< HEAD
     header('Location: my_bookings.php');
     exit();
-}
-
-// Handle payment submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $payment_method = $_POST['payment_method'] ?? '';
-    $card_number = $_POST['card_number'] ?? '';
-    $expiry_date = $_POST['expiry_date'] ?? '';
-    $cvc = $_POST['cvc'] ?? '';
-    $cardholder_name = $_POST['cardholder_name'] ?? '';
-    
-    if (empty($payment_method)) {
-        $error = 'Please select a payment method.';
-    } else {
-        // Generate transaction ID
-        $transaction_id = 'TXN' . time() . rand(1000, 9999);
-        
-        // Insert payment record
-        $stmt = $conn->prepare("INSERT INTO payments (booking_type, booking_id, user_id, amount, payment_method, transaction_id, status) VALUES (?, ?, ?, ?, ?, ?, 'completed')");
-        $stmt->bind_param("siidss", $booking_type, $booking_id, $user_id, $total_amount, $payment_method, $transaction_id);
-        
-        if ($stmt->execute()) {
-            // Update booking status
-            if ($booking_type === 'flight') {
-                $update_stmt = $conn->prepare("UPDATE flight_bookings SET status = 'confirmed', payment_status = 'paid' WHERE id = ?");
-            } elseif ($booking_type === 'hotel') {
-                $update_stmt = $conn->prepare("UPDATE hotel_reservations SET status = 'confirmed', payment_status = 'paid' WHERE id = ?");
-            } else {
-                $update_stmt = $conn->prepare("UPDATE tour_bookings SET status = 'confirmed', payment_status = 'paid' WHERE id = ?");
-            }
-            $update_stmt->bind_param("i", $booking_id);
-            $update_stmt->execute();
-            $update_stmt->close();
-            
-            $success = 'Payment successful! Your booking has been confirmed.';
-            header('refresh:2;url=my_bookings.php');
-        } else {
-            $error = 'Payment processing failed. Please try again.';
-        }
-        $stmt->close();
-    }
-=======
-    $total_amount = 2625.00;
-    $booking_details = 'JFK → LHR';
-    $booking_date_info = 'Oct 14 - Oct 21 7 Days, 6 Nights';
-    $booking_people_info = '2 Passengers';
 }
 
 $base_amount = $total_amount * 0.93;
@@ -158,9 +82,12 @@ $discount = $total_amount * 0.05;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $payment_method = $_POST['payment_method'] ?? 'credit_card';
     
+    // Generate transaction ID
+    $transaction_id = 'TXN' . time() . rand(1000, 9999);
+    
     // Create payment record
-    $stmt = $conn->prepare("INSERT INTO payments (booking_type, booking_id, user_id, amount, payment_method, status) VALUES (?, ?, ?, ?, ?, 'completed')");
-    $stmt->bind_param("siids", $booking_type, $booking_id, $user_id, $total_amount, $payment_method);
+    $stmt = $conn->prepare("INSERT INTO payments (booking_type, booking_id, user_id, amount, payment_method, transaction_id, status) VALUES (?, ?, ?, ?, ?, ?, 'completed')");
+    $stmt->bind_param("siidss", $booking_type, $booking_id, $user_id, $total_amount, $payment_method, $transaction_id);
     
     if ($stmt->execute()) {
         // Update booking status
@@ -176,97 +103,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update_stmt->close();
         
         $payment_success = true;
-        header('Location: my_bookings.php?payment=success');
+        header('Location: my_bookings.php?payment=success&type=' . $booking_type);
         exit();
+    } else {
+        $error = 'Payment processing failed. Please try again.';
     }
     $stmt->close();
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 }
 
 include '../includes/header.php';
 ?>
-<<<<<<< HEAD
-<main class="payment-page">
-    <div class="payment-container">
-        <div class="payment-form-section">
-            <div class="progress-indicator">
-                <span>Step 2 of 3</span>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 66%;"></div>
-                </div>
-                <span>Payment</span>
-            </div>
-            
-            <div class="payment-header">
-                <h1>Secure Payment</h1>
-                <p><i class="fas fa-lock"></i> Complete your booking securely using 128-bit SSL encryption.</p>
-            </div>
-            
-            <?php if ($error): ?>
-                <div class="alert alert-error slide-in"><?php echo htmlspecialchars($error); ?></div>
-            <?php endif; ?>
-            
-            <?php if ($success): ?>
-                <div class="alert alert-success slide-in"><?php echo htmlspecialchars($success); ?></div>
-            <?php endif; ?>
-            
-            <form method="POST" class="payment-form" id="paymentForm">
-                <div class="payment-methods">
-                    <h2>Payment Method</h2>
-                    <div class="method-options">
-                        <input type="radio" name="payment_method" value="credit_card" id="credit_card" checked>
-                        <label for="credit_card" class="method-card">
-                            <i class="fas fa-credit-card"></i>
-                            <span>Credit Card</span>
-                        </label>
-                        
-                        <input type="radio" name="payment_method" value="zaad" id="zaad">
-                        <label for="zaad" class="method-card">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>Zaad</span>
-                        </label>
-                        
-                        <input type="radio" name="payment_method" value="edahab" id="edahab">
-                        <label for="edahab" class="method-card">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>Edahab</span>
-                        </label>
-                        
-                        <input type="radio" name="payment_method" value="waafi" id="waafi">
-                        <label for="waafi" class="method-card">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>Waafi</span>
-                        </label>
-                        
-                        <input type="radio" name="payment_method" value="dahab_plus" id="dahab_plus">
-                        <label for="dahab_plus" class="method-card">
-                            <i class="fas fa-mobile-alt"></i>
-                            <span>Dahab Plus</span>
-                        </label>
-                    </div>
-                </div>
-                
-                <div id="creditCardForm" class="payment-details-form">
-                    <div class="form-group">
-                        <label for="card_number">Card Number</label>
-                        <div class="input-wrapper">
-                            <input type="text" id="card_number" name="card_number" placeholder="0000 0000 0000 0000" maxlength="19">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="expiry_date">Expiry Date</label>
-                            <input type="text" id="expiry_date" name="expiry_date" placeholder="MM/YY" maxlength="5">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cvc">CVC/CVV</label>
-                            <div class="input-wrapper">
-                                <input type="text" id="cvc" name="cvc" placeholder="123" maxlength="4">
-                                <i class="fas fa-lock"></i>
-=======
 <main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark">
     <div class="max-w-7xl mx-auto px-4 md:px-10 py-8 lg:px-20 xl:px-40">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -341,7 +187,7 @@ include '../includes/header.php';
                             <div class="flex flex-col gap-2">
                                 <label class="text-base font-medium text-slate-900 dark:text-white">Expiry Date</label>
                                 <div class="flex w-full items-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
-                                    <input class="w-full h-12 px-4 bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400" placeholder="MM / YY" type="text" name="expiry_date" id="expiry_date" maxlength="5"/>
+                                    <input class="w-full h-12 px-4 bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400" placeholder="MM / YY" type="text" name="expiry_date" id="expiry_date" maxlength="7"/>
                                 </div>
                             </div>
                             
@@ -365,128 +211,10 @@ include '../includes/header.php';
                             <label class="text-base font-medium text-slate-900 dark:text-white">Cardholder Name</label>
                             <div class="flex w-full items-center rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
                                 <input class="w-full h-12 px-4 bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400" placeholder="Full name as on card" type="text" name="cardholder_name" id="cardholder_name"/>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                             </div>
                         </div>
                     </div>
                     
-<<<<<<< HEAD
-                    <div class="form-group">
-                        <label for="cardholder_name">Cardholder Name</label>
-                        <input type="text" id="cardholder_name" name="cardholder_name" placeholder="Full name as on card">
-                    </div>
-                </div>
-                
-                <div id="mobilePaymentForm" class="payment-details-form" style="display: none;">
-                    <div class="form-group">
-                        <label for="mobile_number">Mobile Number</label>
-                        <input type="tel" id="mobile_number" name="mobile_number" placeholder="+252 XX XXX XXXX">
-                    </div>
-                    <p class="help-text">Enter your mobile number registered with the payment service.</p>
-                </div>
-                
-                <div class="billing-address">
-                    <h2>Billing Address</h2>
-                    <label class="checkbox-label">
-                        <input type="checkbox" checked>
-                        Same as passenger contact information
-                    </label>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Street Address</label>
-                            <input type="text" placeholder="123 Travel Lane">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>City</label>
-                            <input type="text" placeholder="New York">
-                        </div>
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn btn-primary btn-pay">
-                    <i class="fas fa-lock"></i> Pay Now
-                </button>
-                
-                <p class="terms-text">
-                    By clicking Pay Now, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
-                </p>
-            </form>
-        </div>
-        
-        <aside class="trip-summary">
-            <div class="summary-image">
-                <h2>Trip to</h2>
-                <h3><?php echo htmlspecialchars($booking_details); ?></h3>
-            </div>
-            
-            <div class="summary-details">
-                <div class="detail-item">
-                    <i class="fas fa-calendar"></i>
-                    <div>
-                        <?php if ($booking_type === 'hotel'): ?>
-                            <span><?php echo date('M d', strtotime($booking['check_in'])); ?> - <?php echo date('M d', strtotime($booking['check_out'])); ?></span>
-                            <small><?php echo (strtotime($booking['check_out']) - strtotime($booking['check_in'])) / 86400; ?> Days, <?php echo (strtotime($booking['check_out']) - strtotime($booking['check_in'])) / 86400 - 1; ?> Nights</small>
-                        <?php elseif ($booking_type === 'tour'): ?>
-                            <span><?php echo date('M d', strtotime($booking['travel_date'])); ?></span>
-                            <small>Travel Date</small>
-                        <?php else: ?>
-                            <span><?php echo date('M d, Y', strtotime($booking['departure_date'])); ?></span>
-                            <small>Departure Date</small>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                
-                <div class="detail-item">
-                    <i class="fas fa-users"></i>
-                    <div>
-                        <?php if ($booking_type === 'hotel'): ?>
-                            <span><?php echo $booking['guests']; ?> Guests</span>
-                            <small><?php echo $booking['rooms']; ?> Room</small>
-                        <?php elseif ($booking_type === 'tour'): ?>
-                            <span><?php echo $booking['travelers']; ?> Travelers</span>
-                        <?php else: ?>
-                            <span><?php echo $booking['passengers']; ?> Passengers</span>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="cost-breakdown">
-                <div class="cost-item">
-                    <span><?php echo ucfirst($booking_type); ?> Booking</span>
-                    <span>$<?php echo number_format($total_amount * 0.93, 2); ?></span>
-                </div>
-                <div class="cost-item">
-                    <span>Taxes & Fees</span>
-                    <span>$<?php echo number_format($total_amount * 0.07, 2); ?></span>
-                </div>
-                <div class="cost-item discount">
-                    <span>Promo (EARLYBIRD)</span>
-                    <span>-$<?php echo number_format($total_amount * 0.05, 2); ?></span>
-                </div>
-                <div class="cost-total">
-                    <span>Total</span>
-                    <strong>$<?php echo number_format($total_amount, 2); ?></strong>
-                </div>
-            </div>
-            
-            <button type="submit" form="paymentForm" class="btn btn-primary btn-pay-summary">
-                <i class="fas fa-lock"></i> Pay Now
-            </button>
-            
-            <div class="security-badge">
-                <i class="fas fa-check-circle"></i>
-                <span>SSL Secure</span>
-                <div class="payment-icons">
-                    <i class="fab fa-cc-visa"></i>
-                    <i class="fab fa-cc-mastercard"></i>
-                    <i class="fab fa-cc-amex"></i>
-                </div>
-            </div>
-        </aside>
-=======
                     <!-- Mobile Payment Form -->
                     <div id="mobilePaymentForm" class="flex flex-col gap-6 hidden">
                         <div class="flex flex-col gap-2">
@@ -602,27 +330,10 @@ include '../includes/header.php';
                 </div>
             </div>
         </div>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     </div>
 </main>
 
 <script>
-<<<<<<< HEAD
-document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        const creditCardForm = document.getElementById('creditCardForm');
-        const mobilePaymentForm = document.getElementById('mobilePaymentForm');
-        
-        if (this.value === 'credit_card') {
-            creditCardForm.style.display = 'block';
-            mobilePaymentForm.style.display = 'none';
-        } else {
-            creditCardForm.style.display = 'none';
-            mobilePaymentForm.style.display = 'block';
-        }
-    });
-});
-=======
 function selectPaymentMethod(method) {
     document.getElementById('payment_method_input').value = method;
     
@@ -656,7 +367,6 @@ function toggleBillingAddress() {
         fields.classList.remove('opacity-50', 'pointer-events-none', 'grayscale');
     }
 }
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 // Format card number
 document.getElementById('card_number')?.addEventListener('input', function(e) {
@@ -665,21 +375,104 @@ document.getElementById('card_number')?.addEventListener('input', function(e) {
     e.target.value = formatted;
 });
 
-// Format expiry date
+// Format expiry date (MM/YY) - simple forward typing
 document.getElementById('expiry_date')?.addEventListener('input', function(e) {
-    let value = e.target.value.replace(/\D/g, '');
-    if (value.length >= 2) {
-<<<<<<< HEAD
-        value = value.substring(0, 2) + '/' + value.substring(2, 4);
-=======
-        value = value.substring(0, 2) + ' / ' + value.substring(2, 4);
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
+    const input = e.target;
+    // Keep only digits
+    let digits = input.value.replace(/\D/g, '');
+
+    // Limit to 4 digits total (MMYY)
+    if (digits.length > 4) {
+        digits = digits.substring(0, 4);
     }
-    e.target.value = value;
+
+    // Build formatted value
+    let formatted = '';
+    if (digits.length === 0) {
+        formatted = '';
+    } else if (digits.length <= 2) {
+        // Month only
+        let month = digits;
+        if (month.length === 2) {
+            const m = parseInt(month, 10);
+            if (m > 12) month = '12';
+            if (m < 1) month = '01';
+        }
+        formatted = month;
+    } else {
+        // Month + year
+        let month = digits.substring(0, 2);
+        const m = parseInt(month, 10);
+        if (m > 12) month = '12';
+        if (m < 1) month = '01';
+        const year = digits.substring(2);
+        formatted = month + ' / ' + year;
+    }
+
+    input.value = formatted;
+    // Always keep cursor at end so typing is forward only
+    input.setSelectionRange(formatted.length, formatted.length);
+});
+
+// Validate on blur - ensure 2-digit year
+document.getElementById('expiry_date')?.addEventListener('blur', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length === 1) {
+        // Single digit - clear it
+        e.target.value = '';
+    } else if (value.length === 2) {
+        // Only month - keep it as is
+        let month = value;
+        if (parseInt(month) > 12) {
+            month = '12';
+        }
+        if (parseInt(month) < 1) {
+            month = '01';
+        }
+        e.target.value = month + ' / ';
+    } else if (value.length === 3) {
+        // Incomplete year - remove last digit
+        let month = value.substring(0, 2);
+        if (parseInt(month) > 12) {
+            month = '12';
+        }
+        if (parseInt(month) < 1) {
+            month = '01';
+        }
+        e.target.value = month + ' / ';
+    } else if (value.length === 4) {
+        // Complete - format properly
+        let month = value.substring(0, 2);
+        let year = value.substring(2, 4);
+        if (parseInt(month) > 12) {
+            month = '12';
+        }
+        if (parseInt(month) < 1) {
+            month = '01';
+        }
+        e.target.value = month + ' / ' + year;
+    }
+});
+
+// Allow backspace and navigation keys to work properly
+document.getElementById('expiry_date')?.addEventListener('keydown', function(e) {
+    // Allow backspace, delete, tab, escape, enter
+    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+        // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+        (e.keyCode === 65 && e.ctrlKey === true) ||
+        (e.keyCode === 67 && e.ctrlKey === true) ||
+        (e.keyCode === 86 && e.ctrlKey === true) ||
+        (e.keyCode === 88 && e.ctrlKey === true) ||
+        // Allow home, end, left, right, up, down
+        (e.keyCode >= 35 && e.keyCode <= 40)) {
+        return;
+    }
+    // Allow numbers (both main keyboard and numpad)
+    if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
+        return; // Allow number input
+    }
+    // Block all other keys
+    e.preventDefault();
 });
 </script>
 <?php include '../includes/footer.php'; ?>
-<<<<<<< HEAD
-
-=======
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd

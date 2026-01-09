@@ -35,9 +35,8 @@ $stats['inquiries'] = $result->fetch_assoc()['total'] ?? 0;
 
 include '../includes/header.php';
 ?>
-<<<<<<< HEAD
-<main class="admin-dashboard">
-    <div class="dashboard-overview">
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6 lg:p-8">
+    <div class="max-w-7xl mx-auto space-y-8">
         <div class="overview-header">
             <div>
                 <h1>Dashboard Overview</h1>
@@ -152,10 +151,6 @@ include '../includes/header.php';
             <div>
                 <strong>5 Unresolved Tickets</strong>
                 <p>Support queue is higher than average.</p>
-=======
-<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6 lg:p-8">
-    <div class="max-w-7xl mx-auto space-y-8">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Dashboard Overview</h2>
                 <p class="text-slate-500 dark:text-slate-400 mt-1">Welcome back, here's what's happening today.</p>

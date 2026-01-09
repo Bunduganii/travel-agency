@@ -38,19 +38,12 @@ This system allows travel agencies to manage bookings for flights, hotels, and t
 
 ## 🛠️ Technologies Used
 
-<<<<<<< HEAD
-- **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
-- **Backend:** PHP 7.4+
-- **Database:** MySQL 5.7+
-- **Icons:** Font Awesome 6.4.0
-- **No Frameworks:** Pure PHP, no frameworks used
-=======
 - **Frontend:** HTML5, Tailwind CSS, JavaScript (Vanilla)
-- **Backend:** PHP 7.4+
-- **Database:** MySQL 5.7+
+- **Backend:** PHP 7.4+ (see `.php-version` file)
+- **Database:** MySQL 5.7+ or MariaDB 10.2+
 - **Icons:** Material Symbols
 - **Styling:** Tailwind CSS (CDN)
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
+- **Web Server:** Apache (with .htaccess) or Nginx
 
 ## 📋 Requirements
 
@@ -77,7 +70,80 @@ git clone https://github.com/yourusername/travel-agency-system.git
 cd travel-agency-system
 ```
 
-### Step 2: Database Setup
+### Step 1.5: Check PHP Requirements ⚠️ IMPORTANT
+
+**Always run this first!** This ensures your PHP environment is compatible with the application.
+
+**Option 1: Run the requirements checker (RECOMMENDED)**
+```bash
+php requirements.php
+```
+
+**This will automatically check:**
+- ✅ PHP version (requires >= 7.4.0)
+- ✅ Required extensions (mysqli, session, mbstring, json)
+- ✅ Directory permissions
+- ✅ PHP configuration settings
+- ✅ Optional but recommended extensions
+
+**Expected successful output:**
+```
+=== PHP Requirements Check ===
+
+PHP Version: 7.4.33 (Required: >= 7.4.0)
+✓ PHP version is compatible
+
+Checking Required Extensions:
+✓ mysqli - MySQLi extension for database connectivity
+✓ session - Session extension for user authentication
+✓ mbstring - Multibyte String extension for string handling
+✓ json - JSON extension for data encoding/decoding
+
+=== Summary ===
+✓ All required extensions are loaded
+✓ PHP environment is ready for this application
+```
+
+**If you see ✗ (errors):**
+- See [Troubleshooting](#-troubleshooting) section below
+- Most common: PHP version too old or missing extensions
+
+**Option 2: Manual check**
+```bash
+php -v  # Should show PHP 7.4.0 or higher
+php -m  # List all loaded extensions (should include mysqli, mbstring, session, json)
+```
+
+**If PHP version is too old:**
+- **Windows (XAMPP):** Download latest XAMPP from https://www.apachefriends.org/
+- **Linux:** `sudo apt-get install php7.4` or use phpbrew
+- **Mac:** `brew install php@7.4` or use phpbrew
+- **cPanel/Hosting:** Contact your hosting provider to upgrade PHP version
+
+**If extensions are missing:**
+- **Windows (XAMPP):** Uncomment extension in `php.ini` file
+- **Linux:** `sudo apt-get install php7.4-mysqli php7.4-mbstring php7.4-session`
+- **Mac:** `brew install php@7.4-mysqli php@7.4-mbstring`
+- **cPanel/Hosting:** Enable extensions via hosting control panel
+
+### Step 2: Configure Database Connection
+1. **Copy the example configuration file:**
+   ```bash
+   # On Linux/Mac:
+   cp includes/db.php.example includes/db.php
+   
+   # On Windows: Copy db.php.example and rename to db.php
+   ```
+
+2. **Edit `includes/db.php`** with your database credentials:
+   ```php
+   define('DB_HOST', 'localhost');     // Usually 'localhost'
+   define('DB_USER', 'root');          // Your MySQL username
+   define('DB_PASS', '');              // Your MySQL password (empty if no password)
+   define('DB_NAME', 'travel_agency_db'); // Your database name
+   ```
+
+### Step 3: Database Setup
 
 1. **Create Database:**
    - Open phpMyAdmin or MySQL command line
@@ -93,17 +159,7 @@ cd travel-agency-system
    mysql -u root -p travel_agency_db < database/travel_agency.sql
    ```
 
-3. **Database Configuration:**
-   - Open `includes/db.php`
-   - Update database credentials:
-   ```php
-   define('DB_HOST', 'localhost');  // Your database host
-   define('DB_USER', 'root');       // Your database username
-   define('DB_PASS', '');           // Your database password
-   define('DB_NAME', 'travel_agency_db'); // Your database name
-   ```
-
-### Step 3: Web Server Configuration
+### Step 4: Web Server Configuration
 
 #### For Apache (XAMPP/WAMP):
 1. Copy the project folder to `htdocs` (XAMPP) or `www` (WAMP)
@@ -113,31 +169,45 @@ cd travel-agency-system
 1. Configure virtual host pointing to project directory
 2. Ensure PHP-FPM is configured
 
-### Step 4: File Permissions
+### Step 5: Verify Installation
+1. **Run PHP requirements check:**
+   ```bash
+   php requirements.php
+   ```
+   All checks should pass (show ✓).
+
+2. **Test the application:**
+   - Open your browser
+   - Navigate to: `http://localhost/travel-agency-system/`
+   - You should see the homepage
+
+3. **Test database connection:**
+   - Try to register a new account or login
+   - If you see database errors, check `includes/db.php` configuration
+
+### Step 6: File Permissions (Linux/Mac only)
 ```bash
-# Set proper permissions (Linux/Mac)
+# Set proper permissions
 chmod 755 -R .
 chmod 644 includes/db.php
+chmod 644 .htaccess
 ```
 
-<<<<<<< HEAD
-### Step 5: Initial Login
+### Step 7: Login as Admin
 
-**Admin Account:**
-- Email: `admin@travelagency.com`
-- Password: `admin123`
+**Default Admin Account (already included in database):**
+- **Email:** `admin@travelagency.com`
+- **Username:** `admin`
+- **Password:** `password`
 
-**Note:** Default admin password is hashed. You may need to reset it or use the registration system to create a new admin account.
-=======
-### Step 5: Create Admin Account
+⚠️ **IMPORTANT:** Change the default password after first login for security!
 
-After setting up the database, you need to create an admin account. You can do this by:
+**Alternative: Create New Admin Account**
 
 1. **Using the registration page** - Register a new account and manually update the `user_type` field in the database to `'admin'`
 2. **Direct SQL insertion** - Insert an admin user directly into the `users` table with `user_type = 'admin'`
 
 **Note:** Make sure to hash passwords using PHP's `password_hash()` function before inserting into the database.
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 ## 📁 Project Structure
 
@@ -212,13 +282,8 @@ The system supports the following payment methods:
 ## 🎨 Design Features
 
 - **Responsive Design:** Works on desktop, tablet, and mobile devices
-<<<<<<< HEAD
-- **Animations:** Smooth CSS and JavaScript animations
-- **Modern UI:** Clean, professional interface
-=======
 - **Modern UI:** Clean, professional interface built with Tailwind CSS
 - **Material Symbols:** Modern icon library for consistent UI elements
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 - **User-Friendly:** Intuitive navigation and forms
 - **Accessibility:** Semantic HTML and proper form labels
 
@@ -248,49 +313,79 @@ The system supports the following payment methods:
 
 ## 📝 Code Style
 
-<<<<<<< HEAD
-- Clean, readable code
-- Well-commented functions
-- Consistent naming conventions
-- Modular file structure
-- Separation of concerns
-=======
 - Clean, readable PHP code
 - Consistent naming conventions (camelCase for variables, snake_case for database)
 - Modular file structure with includes
 - Separation of concerns (database, authentication, presentation)
 - Prepared statements for all database queries
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 ## 🐛 Troubleshooting
 
+### PHP Version Error / "Unrecognized PHP":
+**Problem:** "Fatal error: Unsupported version" or "Call to undefined function"
+
+**Solution:**
+1. Check your PHP version: `php -v` or run `php requirements.php`
+2. **If PHP < 7.4:**
+   - **XAMPP:** Download latest XAMPP from https://www.apachefriends.org/
+   - **WAMP:** Update to latest version with PHP 7.4+
+   - **Linux:** `sudo apt-get install php7.4` or `sudo apt-get install php8.0`
+   - **Mac:** `brew install php@7.4` or update via Homebrew
+   - **Hosting/cPanel:** Change PHP version in hosting control panel (Select PHP Version)
+3. Restart Apache/web server after PHP update
+4. Run `php requirements.php` again to verify
+
+### Missing PHP Extensions:
+**Problem:** "Call to undefined function mysqli_connect()" or similar
+
+**Solution:**
+1. Run `php requirements.php` to see which extensions are missing
+2. Enable extensions in `php.ini`:
+   ```ini
+   extension=mysqli
+   extension=mbstring
+   extension=session
+   extension=json
+   ```
+3. Restart Apache/web server
+4. Verify: `php -m | grep mysqli`
+
 ### Database Connection Error:
 - Check database credentials in `includes/db.php`
-- Ensure MySQL service is running
-- Verify database exists
+- Ensure MySQL service is running (green in XAMPP Control Panel)
+- Verify database `travel_agency_db` exists in phpMyAdmin
+- Test connection: `php -r "new mysqli('localhost', 'root', '', 'travel_agency_db');"`
 
 ### Session Issues:
-- Check PHP session configuration
-- Ensure `session_start()` is called
-- Check file permissions
+- Check PHP session configuration in `php.ini`
+- Ensure `session_start()` is called in files
+- Check file permissions (755 for directories, 644 for files)
+- Verify session directory is writable
 
-### Page Not Found:
-- Verify .htaccess configuration (if using Apache)
-- Check file paths and includes
-- Ensure web server is configured correctly
+### Page Not Found (404):
+- Verify `.htaccess` file exists in project root
+- If using Apache: Check `mod_rewrite` is enabled
+- If using Nginx: Configure rewrite rules separately
+- Check file paths are correct
+- Ensure project is in correct directory (`htdocs` for XAMPP, `www` for WAMP)
+
+### Composer/Version Recognition Issues:
+If using Composer or version managers:
+- **For Heroku:** Use `composer.json` (already included)
+- **For phpbrew:** Use `.php-version` file (already included)
+- **For cPanel:** Contact hosting provider to set PHP version to 7.4+
+
+### Git/Deployment Issues:
+**When deploying to GitHub and downloading:**
+1. Don't commit `includes/db.php` (it's in `.gitignore`)
+2. After download: Copy `includes/db.php.example` to `includes/db.php`
+3. Run `php requirements.php` to verify environment
+4. Configure database credentials in `includes/db.php`
 
 ## 📄 License
 
 This project is created for educational purposes as a Final Year Project.
 
-<<<<<<< HEAD
-## 👨‍💻 Developer Notes
-
-- Code is written for intermediate-level understanding
-- No advanced frameworks or libraries used
-- Suitable for learning and demonstration
-- Easy to modify and extend
-=======
 ## 👨‍💻 Project Structure
 
 This project follows a simple MVC-like structure:
@@ -298,7 +393,6 @@ This project follows a simple MVC-like structure:
 - **Business Logic:** PHP logic embedded in presentation files
 - **Data Layer:** `includes/db.php` for database connections
 - **Shared Components:** `includes/` folder for headers, footers, and authentication
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 ## 🔄 Future Enhancements
 
@@ -321,12 +415,8 @@ For issues or questions:
 
 ## 🙏 Acknowledgments
 
-<<<<<<< HEAD
-- Font Awesome for icons
-=======
 - Material Symbols for icons
 - Tailwind CSS for styling framework
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 - Unsplash for placeholder images
 - PHP and MySQL communities
 

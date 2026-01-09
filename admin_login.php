@@ -317,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <a href="#" class="text-sm text-primary hover:text-primary-dark font-semibold">Forgot password?</a>
                     </div>
                     
-                    <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30">
+                    <button type="submit" id="adminLoginSubmit" class="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-4 rounded-lg transition-all shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30">
                         Log In
                     </button>
                 </form>
@@ -391,6 +391,21 @@ function togglePassword() {
         toggleIcon.textContent = 'visibility';
     }
 }
+
+// Handle form submission with loading effect
+document.addEventListener('DOMContentLoaded', function() {
+    const adminLoginForm = document.getElementById('adminLoginForm');
+    const submitButton = document.getElementById('adminLoginSubmit');
+    
+    if (adminLoginForm && submitButton) {
+        adminLoginForm.addEventListener('submit', function(e) {
+            // Show loading state
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span>Processing...</span>';
+        });
+    }
+});
 </script>
 </body>
 </html>

@@ -61,8 +61,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Get all users
-$users = $conn->query("SELECT id, username, email, full_name, user_type, created_at FROM users ORDER BY created_at DESC");
+// Get search/filter parameters
+$search = $_GET['search'] ?? '';
+$filter_type = $_GET['type'] ?? 'all';
+
+// Build query
+$where = [];
+$params = [];
+$types = '';
+
+if ($search) {
+    $where[] = "(username LIKE ? OR email LIKE ? OR full_name LIKE ?)";
+    $search_param = "%$search%";
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $types .= 'sss';
+}
+
+if ($filter_type && $filter_type !== 'all') {
+    $where[] = "user_type = ?";
+    $params[] = $filter_type;
+    $types .= 's';
+}
+
+$where_clause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+$query = "SELECT id, username, email, full_name, user_type, created_at FROM users $where_clause ORDER BY created_at DESC";
+
+$users = [];
+if (!empty($params)) {
+    $stmt = $conn->prepare($query);
+    if ($types) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $users = $stmt->get_result();
+} else {
+    $users = $conn->query($query);
+}
 
 include '../includes/header.php';
 ?>
@@ -80,6 +116,38 @@ include '../includes/header.php';
                     Export Users
                 </button>
             </div>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <form method="GET" class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label for="user_search_input" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Search Users</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">search</span>
+                        <input id="user_search_input" type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search by username, email, or full name" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" aria-label="Search users">
+                    </div>
+                </div>
+                <div class="md:w-40">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">User Type</label>
+                    <select name="type" class="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="all" <?php echo $filter_type === 'all' ? 'selected' : ''; ?>>All Users</option>
+                        <option value="admin" <?php echo $filter_type === 'admin' ? 'selected' : ''; ?>>Admin</option>
+                        <option value="customer" <?php echo $filter_type === 'customer' ? 'selected' : ''; ?>>Customer</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+                        <span class="material-symbols-outlined text-[18px] align-middle">search</span>
+                        Search
+                    </button>
+                    <?php if ($search || $filter_type !== 'all'): ?>
+                        <a href="manage_users.php" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                            Clear
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </form>
         </div>
 
         <!-- Message Alert -->

@@ -84,11 +84,6 @@ function getUserFullName() {
  * Logout user
  */
 function logout() {
-<<<<<<< HEAD
-    session_unset();
-    session_destroy();
-    header('Location: login.php');
-=======
     // Clear all session variables
     $_SESSION = array();
     
@@ -103,14 +98,16 @@ function logout() {
     
     // Determine the correct path to login.php based on current location
     $current_dir = dirname($_SERVER['PHP_SELF']);
-    if (strpos($current_dir, '/admin') !== false) {
+    if (strpos($current_dir, '/admin') !== false || strpos($current_dir, '\\admin') !== false) {
         // If we're in admin directory, go up one level
+        header('Location: ../login.php');
+    } elseif (strpos($current_dir, '/customer') !== false || strpos($current_dir, '\\customer') !== false) {
+        // If we're in customer directory, go up one level
         header('Location: ../login.php');
     } else {
         // If we're in root directory
         header('Location: login.php');
     }
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     exit();
 }
 

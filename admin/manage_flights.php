@@ -11,19 +11,12 @@ requireAdmin();
 $page_title = 'Manage Flights';
 $message = '';
 $message_type = '';
-<<<<<<< HEAD
-=======
 $editing_flight = null;
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
-<<<<<<< HEAD
-        if ($_POST['action'] === 'add') {
-=======
         if ($_POST['action'] === 'add' || $_POST['action'] === 'update') {
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
             $flight_number = trim($_POST['flight_number']);
             $airline = trim($_POST['airline']);
             $origin = trim($_POST['origin']);
@@ -37,16 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $duration = trim($_POST['duration']);
             $class_type = $_POST['class_type'];
             
-<<<<<<< HEAD
-            $stmt = $conn->prepare("INSERT INTO flights (flight_number, airline, origin, destination, departure_date, arrival_date, price, available_seats, aircraft, stops, duration, class_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssdississ", $flight_number, $airline, $origin, $destination, $departure_date, $arrival_date, $price, $available_seats, $aircraft, $stops, $duration, $class_type);
-            
-            if ($stmt->execute()) {
-                $message = 'Flight added successfully!';
-                $message_type = 'success';
-            } else {
-                $message = 'Error adding flight.';
-=======
             if ($_POST['action'] === 'update') {
                 $id = intval($_POST['flight_id']);
                 $stmt = $conn->prepare("UPDATE flights SET flight_number = ?, airline = ?, origin = ?, destination = ?, departure_date = ?, arrival_date = ?, price = ?, available_seats = ?, aircraft = ?, stops = ?, duration = ?, class_type = ? WHERE id = ?");
@@ -63,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'success';
             } else {
                 $message = 'Error saving flight.';
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
                 $message_type = 'error';
             }
             $stmt->close();
@@ -76,8 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $message_type = 'success';
             }
             $stmt->close();
-<<<<<<< HEAD
-=======
         } elseif ($_POST['action'] === 'edit') {
             $id = intval($_POST['flight_id']);
             $stmt = $conn->prepare("SELECT * FROM flights WHERE id = ?");
@@ -86,149 +66,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = $stmt->get_result();
             $editing_flight = $result->fetch_assoc();
             $stmt->close();
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
         }
     }
 }
 
-// Get all flights
-$flights = $conn->query("SELECT * FROM flights ORDER BY departure_date DESC");
+// Get search/filter parameters
+$search = $_GET['search'] ?? '';
+$filter_airline = $_GET['airline'] ?? 'all';
+$filter_status = $_GET['status'] ?? 'all';
+
+// Build query
+$where = [];
+$params = [];
+$types = '';
+
+if ($search) {
+    $where[] = "(flight_number LIKE ? OR airline LIKE ? OR origin LIKE ? OR destination LIKE ?)";
+    $search_param = "%$search%";
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $params[] = $search_param;
+    $types .= 'ssss';
+}
+
+if ($filter_airline && $filter_airline !== 'all') {
+    $where[] = "airline = ?";
+    $params[] = $filter_airline;
+    $types .= 's';
+}
+
+$where_clause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
+$query = "SELECT * FROM flights $where_clause ORDER BY departure_date DESC";
+
+// Get unique airlines for filter
+$airlines_result = $conn->query("SELECT DISTINCT airline FROM flights WHERE airline IS NOT NULL ORDER BY airline");
+
+$flights = [];
+if (!empty($params)) {
+    $stmt = $conn->prepare($query);
+    if ($types) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $flights = $stmt->get_result();
+} else {
+    $flights = $conn->query($query);
+}
 
 include '../includes/header.php';
 ?>
-<<<<<<< HEAD
-<main class="admin-page">
-    <div class="page-header">
-        <h1>Manage Flights</h1>
-        <button class="btn btn-primary" onclick="toggleFlightForm()">
-            <i class="fas fa-plus"></i> Add New Flight
-        </button>
-    </div>
-    
-    <?php if ($message): ?>
-        <div class="alert alert-<?php echo $message_type; ?> slide-in">
-            <?php echo htmlspecialchars($message); ?>
-        </div>
-    <?php endif; ?>
-    
-    <div class="flight-form-container" id="flightForm" style="display: none;">
-        <form method="POST" class="admin-form">
-            <input type="hidden" name="action" value="add">
-            <h2>Add New Flight</h2>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Flight Number</label>
-                    <input type="text" name="flight_number" required>
-                </div>
-                <div class="form-group">
-                    <label>Airline</label>
-                    <input type="text" name="airline" required>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Origin</label>
-                    <input type="text" name="origin" required>
-                </div>
-                <div class="form-group">
-                    <label>Destination</label>
-                    <input type="text" name="destination" required>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Departure Date & Time</label>
-                    <input type="datetime-local" name="departure_date" required>
-                </div>
-                <div class="form-group">
-                    <label>Arrival Date & Time</label>
-                    <input type="datetime-local" name="arrival_date" required>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Price ($)</label>
-                    <input type="number" step="0.01" name="price" required>
-                </div>
-                <div class="form-group">
-                    <label>Available Seats</label>
-                    <input type="number" name="available_seats" required>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Aircraft</label>
-                    <input type="text" name="aircraft">
-                </div>
-                <div class="form-group">
-                    <label>Stops</label>
-                    <input type="number" name="stops" value="0" min="0">
-                </div>
-                <div class="form-group">
-                    <label>Duration</label>
-                    <input type="text" name="duration" placeholder="e.g., 6h 55m">
-                </div>
-                <div class="form-group">
-                    <label>Class</label>
-                    <select name="class_type">
-                        <option value="Economy">Economy</option>
-                        <option value="Premium">Premium</option>
-                        <option value="Business">Business</option>
-                        <option value="First">First</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Add Flight</button>
-                <button type="button" class="btn btn-secondary" onclick="toggleFlightForm()">Cancel</button>
-            </div>
-        </form>
-    </div>
-    
-    <div class="admin-table-container">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Flight Number</th>
-                    <th>Airline</th>
-                    <th>Route</th>
-                    <th>Departure</th>
-                    <th>Arrival</th>
-                    <th>Price</th>
-                    <th>Seats</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php while ($flight = $flights->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($flight['flight_number']); ?></td>
-                    <td><?php echo htmlspecialchars($flight['airline']); ?></td>
-                    <td><?php echo htmlspecialchars($flight['origin']); ?> → <?php echo htmlspecialchars($flight['destination']); ?></td>
-                    <td><?php echo date('M d, Y H:i', strtotime($flight['departure_date'])); ?></td>
-                    <td><?php echo date('M d, Y H:i', strtotime($flight['arrival_date'])); ?></td>
-                    <td>$<?php echo number_format($flight['price'], 2); ?></td>
-                    <td><?php echo $flight['available_seats']; ?></td>
-                    <td>
-                        <form method="POST" style="display: inline;" onsubmit="return confirm('Are you sure?');">
-                            <input type="hidden" name="action" value="delete">
-                            <input type="hidden" name="flight_id" value="<?php echo $flight['id']; ?>">
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-=======
 <main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-6 lg:p-8">
     <div class="max-w-7xl mx-auto space-y-6">
         <!-- Page Header -->
@@ -241,6 +128,42 @@ include '../includes/header.php';
                 <span class="material-symbols-outlined text-[18px]">add</span>
                 <?php echo $editing_flight ? 'Cancel Edit' : 'Add New Flight'; ?>
             </button>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="bg-surface-light dark:bg-surface-dark p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+            <form method="GET" class="flex flex-col md:flex-row gap-4">
+                <div class="flex-1">
+                    <label for="flight_search_input" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Search Flights</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">search</span>
+                        <input id="flight_search_input" type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search by flight number, airline, origin, or destination" class="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent" aria-label="Search flights">
+                    </div>
+                </div>
+                <div class="md:w-48">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Filter by Airline</label>
+                    <select name="airline" class="w-full px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent">
+                        <option value="all" <?php echo $filter_airline === 'all' ? 'selected' : ''; ?>>All Airlines</option>
+                        <?php 
+                        $airlines_result->data_seek(0);
+                        while ($airline_row = $airlines_result->fetch_assoc()): 
+                        ?>
+                            <option value="<?php echo htmlspecialchars($airline_row['airline']); ?>" <?php echo $filter_airline === $airline_row['airline'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($airline_row['airline']); ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2">
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-dark transition-colors">
+                        <span class="material-symbols-outlined text-[18px] align-middle">search</span>
+                        Search
+                    </button>
+                    <?php if ($search || $filter_airline !== 'all'): ?>
+                        <a href="manage_flights.php" class="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                            Clear
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </form>
         </div>
 
         <!-- Message Alert -->
@@ -392,12 +315,6 @@ include '../includes/header.php';
 function toggleFlightForm() {
     const form = document.getElementById('flightForm');
     form.style.display = form.style.display === 'none' ? 'block' : 'none';
-<<<<<<< HEAD
-}
-</script>
-<?php include '../includes/footer.php'; ?>
-
-=======
     if (form.style.display === 'none') {
         window.location.href = 'manage_flights.php';
     }

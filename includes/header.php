@@ -6,11 +6,9 @@
 if (!isset($page_title)) {
     $page_title = 'Travel Agency';
 }
-<<<<<<< HEAD
 ?>
 <!DOCTYPE html>
 <html lang="en">
-=======
 
 // Load config if not already loaded - SIMPLE AND RELIABLE
 if (!defined('ASSETS_PATH')) {
@@ -53,12 +51,10 @@ $base_path = BASE_PATH;
 ?>
 <!DOCTYPE html>
 <html class="light" lang="en">
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($page_title); ?> - Travel Agency</title>
-<<<<<<< HEAD
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -96,7 +92,6 @@ $base_path = BASE_PATH;
             </div>
         </div>
     </header>
-=======
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
@@ -161,13 +156,14 @@ $base_path = BASE_PATH;
                 <button class="md:hidden text-slate-500 hover:text-slate-700">
                     <span class="material-symbols-outlined">menu</span>
                 </button>
-                <div class="hidden md:flex items-center bg-background-light dark:bg-slate-800 rounded-lg px-3 py-2 w-64 lg:w-96 border border-transparent focus-within:border-primary/50 transition-colors">
+                <div class="hidden md:flex items-center bg-background-light dark:bg-slate-800 rounded-lg px-3 py-2 w-64 lg:w-96 border border-slate-200 dark:border-slate-700 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 transition-colors">
+                    <label for="header_search" class="sr-only"><?php echo isAdmin() ? 'Search bookings, flights, users' : 'Search destinations, hotels'; ?></label>
                     <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
-                    <input class="bg-transparent border-none outline-none text-sm ml-2 w-full text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:ring-0" placeholder="<?php echo isAdmin() ? 'Search bookings, flights, users...' : 'Search destinations, hotels...'; ?>" type="text">
+                    <input id="header_search" class="bg-transparent border-none outline-none text-sm ml-2 w-full text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:ring-0" placeholder="<?php echo isAdmin() ? 'Search bookings, flights, users...' : 'Search destinations, hotels...'; ?>" type="text" onkeydown="if(event.key === 'Enter') handleHeaderSearch(event)" autocomplete="off">
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <button class="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors">
+                <button type="button" onclick="showNotificationToast()" class="relative p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer" aria-label="Notifications">
                     <span class="material-symbols-outlined">notifications</span>
                     <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-surface-dark"></span>
                 </button>
@@ -182,6 +178,129 @@ $base_path = BASE_PATH;
                 </div>
             </div>
         </header>
->>>>>>> 0ed9234f9450f7bebae643ba53e95357d08754fd
     <?php endif; ?>
+
+<script>
+// Notification bell click handler
+function showNotificationToast() {
+    // Remove existing toast if any
+    const existingToast = document.getElementById('notification-toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.id = 'notification-toast';
+    toast.className = 'fixed top-20 right-4 z-50 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-4 flex items-center gap-3 animate-slide-in-right max-w-sm';
+    toast.innerHTML = `
+        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <span class="material-symbols-outlined text-primary">notifications</span>
+        </div>
+        <div class="flex-1">
+            <p class="font-bold text-slate-900 dark:text-white">Coming Soon</p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Notification feature is under development</p>
+        </div>
+        <button onclick="closeNotificationToast()" class="text-slate-400 hover:text-slate-600">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        closeNotificationToast();
+    }, 4000);
+}
+
+function closeNotificationToast() {
+    const toast = document.getElementById('notification-toast');
+    if (toast) {
+        toast.classList.add('animate-slide-out-right');
+        setTimeout(() => toast.remove(), 300);
+    }
+}
+
+
+// Header search handler
+function handleHeaderSearch(event) {
+    event.preventDefault();
+    const searchValue = event.target.value.trim();
+    if (!searchValue) return;
+    
+    const currentPath = window.location.pathname;
+    
+    // Route to appropriate search page based on current location
+    if (currentPath.includes('/admin/')) {
+        // Admin search - go to appropriate manage page
+        if (currentPath.includes('manage_flights')) {
+            window.location.href = `manage_flights.php?search=${encodeURIComponent(searchValue)}`;
+        } else if (currentPath.includes('manage_hotels')) {
+            window.location.href = `manage_hotels.php?search=${encodeURIComponent(searchValue)}`;
+        } else if (currentPath.includes('manage_tours')) {
+            window.location.href = `manage_tours.php?search=${encodeURIComponent(searchValue)}`;
+        } else if (currentPath.includes('manage_users')) {
+            window.location.href = `manage_users.php?search=${encodeURIComponent(searchValue)}`;
+        } else if (currentPath.includes('manage_bookings')) {
+            window.location.href = `manage_bookings.php?search=${encodeURIComponent(searchValue)}`;
+        } else {
+            // Default to bookings
+            window.location.href = `manage_bookings.php?search=${encodeURIComponent(searchValue)}`;
+        }
+    } else if (currentPath.includes('/customer/')) {
+        // Customer search - go to appropriate page
+        if (currentPath.includes('book_flight')) {
+            window.location.href = `book_flight.php?origin=${encodeURIComponent(searchValue)}`;
+        } else if (currentPath.includes('reserve_hotel')) {
+            window.location.href = `reserve_hotel.php?location=${encodeURIComponent(searchValue)}`;
+        } else if (currentPath.includes('tour_packages')) {
+            window.location.href = `tour_packages.php?search=${encodeURIComponent(searchValue)}`;
+        } else if (currentPath.includes('my_bookings')) {
+            window.location.href = `my_bookings.php?search=${encodeURIComponent(searchValue)}`;
+        } else {
+            // Default search - try flights
+            window.location.href = `book_flight.php?origin=${encodeURIComponent(searchValue)}`;
+        }
+    } else {
+        // Root level - search flights
+        window.location.href = `customer/book_flight.php?origin=${encodeURIComponent(searchValue)}`;
+    }
+}
+
+// Add CSS for toast animations
+if (!document.getElementById('toast-animations')) {
+    const style = document.createElement('style');
+    style.id = 'toast-animations';
+    style.textContent = `
+        @keyframes slide-in-right {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slide-out-right {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        .animate-slide-in-right {
+            animation: slide-in-right 0.3s ease-out;
+        }
+        .animate-slide-out-right {
+            animation: slide-out-right 0.3s ease-out;
+        }
+    `;
+    document.head.appendChild(style);
+}
+</script>
 

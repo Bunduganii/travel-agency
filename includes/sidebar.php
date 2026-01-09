@@ -79,6 +79,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <span class="material-symbols-outlined text-text-secondary group-hover:text-text-main dark:text-text-secondary-dark dark:group-hover:text-white">settings</span>
                 <p class="text-sm <?php echo $current_page == 'settings.php' ? 'font-bold' : 'font-medium'; ?>">Settings</p>
             </a>
+            <a href="https://wa.me/1234567890?text=Hello%2C%20I%20need%20help%20with%20my%20booking" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#f0f3f5] dark:hover:bg-white/5 text-text-main dark:text-text-main-dark transition-colors group">
+                <span class="material-symbols-outlined text-text-secondary group-hover:text-green-500 dark:text-text-secondary-dark dark:group-hover:text-green-400">support_agent</span>
+                <p class="text-sm font-medium group-hover:text-green-500 dark:group-hover:text-green-400">Support</p>
+            </a>
         <?php endif; ?>
     </div>
     <?php if (isAdmin()): ?>
